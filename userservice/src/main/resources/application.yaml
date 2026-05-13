@@ -1,3 +1,11 @@
+
 spring:
   application:
-    name: userservice
+    name: user-service
+  datasource:
+    driver-class-name: org.postgresql.Driver
+    url: ${SPRING_DATASOURCE_URL:jdbc://postgresql://localhost:5432/user_db}
+    username: ${SPRING_DATASOURCE_USERNAME:root}
+    password: ${SPRING_DATASOURCE_PASSWORD:root}
+server:
+  port: 8080
