@@ -1,0 +1,26 @@
+package org.fmazmz.messagemanager.adapter.web;
+
+import org.fmazmz.messagemanager.domain.exception.RoomNotFoundException;
+import org.fmazmz.messagemanager.domain.exception.SenderNotFoundException;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ProblemDetail;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.RestControllerAdvice;
+
+@RestControllerAdvice
+public class GlobalExceptionHandler {
+
+    @ExceptionHandler(RoomNotFoundException.class)
+    ProblemDetail handleRoomNotFound(RoomNotFoundException ex) {
+        ProblemDetail detail = ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, ex.getMessage());
+        detail.setTitle("Room not found");
+        return detail;
+    }
+
+    @ExceptionHandler(SenderNotFoundException.class)
+    ProblemDetail handleSenderNotFound(SenderNotFoundException ex) {
+        ProblemDetail detail = ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, ex.getMessage());
+        detail.setTitle("Sender not found");
+        return detail;
+    }
+}

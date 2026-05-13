@@ -1,0 +1,24 @@
+spring:
+  application:
+    name: message-manager
+  grpc:
+    client:
+      channels:
+        user-manager:
+          address: static://${USER_MANAGER_GRPC_HOST:127.0.0.1}:${USER_MANAGER_GRPC_PORT:9090}
+          negotiation-type: plaintext
+  datasource:
+    driver-class-name: org.postgresql.Driver
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/message_db}
+    username: ${SPRING_DATASOURCE_USERNAME:root}
+    password: ${SPRING_DATASOURCE_PASSWORD:root}
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+server:
+  port: ${SERVER_PORT:8081}
+
+messagemanager:
+  user-grpc:
+    # When true, POST /messages checks User Service via gRPC before persisting.
+    validate-sender: ${MESSAGEMANAGER_USER_GRPC_VALIDATE_SENDER:true}

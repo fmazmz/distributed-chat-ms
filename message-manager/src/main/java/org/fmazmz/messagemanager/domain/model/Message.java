@@ -1,4 +1,4 @@
-package org.fmazmz.messagemanager.model;
+package org.fmazmz.messagemanager.domain.model;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Size;
