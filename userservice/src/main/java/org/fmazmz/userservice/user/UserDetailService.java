@@ -1,9 +1,9 @@
 package org.fmazmz.userservice.user;
 
-import org.fmazmz.userservice.user.dto.NewUserRequest;
-import org.fmazmz.userservice.user.dto.NewUserResponse;
-import org.fmazmz.userservice.user.dto.UserDetailsRequest;
-import org.fmazmz.userservice.user.dto.UserDetailsResponse;
+import org.fmazmz.userservice.user.api.dto.NewUserRequest;
+import org.fmazmz.userservice.user.api.dto.NewUserResponse;
+import org.fmazmz.userservice.user.api.dto.UserDetailsRequest;
+import org.fmazmz.userservice.user.api.dto.UserDetailsResponse;
 import org.fmazmz.userservice.user.exception.UserNotFoundException;
 import org.springframework.stereotype.Service;
 

@@ -1,6 +1,6 @@
 package org.fmazmz.userservice.user;
 
-import org.fmazmz.userservice.user.dto.NewUserRequest;
+import org.fmazmz.userservice.user.api.dto.NewUserRequest;
 import org.fmazmz.userservice.user.exception.DuplicateUserException;
 import org.springframework.stereotype.Service;
 

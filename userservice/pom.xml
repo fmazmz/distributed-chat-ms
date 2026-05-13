@@ -50,9 +50,10 @@
             <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
             <version>3.0.2</version>
         </dependency>
+        <!-- Netty gRPC server on spring.grpc.server.port (default 9090). REST stays on server.port. -->
         <dependency>
             <groupId>org.springframework.grpc</groupId>
-            <artifactId>spring-grpc-server-web-spring-boot-starter</artifactId>
+            <artifactId>spring-grpc-server-spring-boot-starter</artifactId>
         </dependency>
 
         <dependency>
@@ -116,6 +117,25 @@
                         <goals>
                             <goal>generate</goal>
                         </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <!-- Register generated protobuf/gRPC sources so IDEs and javac resolve org.fmazmz.userservice.grpc.v1.* -->
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>build-helper-maven-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>add-protobuf-sources</id>
+                        <phase>generate-sources</phase>
+                        <goals>
+                            <goal>add-source</goal>
+                        </goals>
+                        <configuration>
+                            <sources>
+                                <source>${project.build.directory}/generated-sources/protobuf</source>
+                            </sources>
+                        </configuration>
                     </execution>
                 </executions>
             </plugin>

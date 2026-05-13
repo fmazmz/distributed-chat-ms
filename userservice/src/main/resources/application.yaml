@@ -1,11 +1,17 @@
-
 spring:
   application:
     name: user-service
+  # gRPC (Netty): use this port from other services / Minikube (e.g. user-service:9090).
+  grpc:
+    server:
+      port: ${GRPC_SERVER_PORT:9090}
   datasource:
     driver-class-name: org.postgresql.Driver
-    url: ${SPRING_DATASOURCE_URL:jdbc://postgresql://localhost:5432/user_db}
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/user_db}
     username: ${SPRING_DATASOURCE_USERNAME:root}
     password: ${SPRING_DATASOURCE_PASSWORD:root}
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
 server:
-  port: 8080
+  port: ${SERVER_PORT:8080}

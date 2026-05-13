@@ -1,4 +1,4 @@
-package org.fmazmz.userservice.user.dto;
+package org.fmazmz.userservice.user.api.dto;
 
 import java.util.UUID;
 
