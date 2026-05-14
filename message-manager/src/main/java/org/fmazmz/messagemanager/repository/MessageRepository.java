@@ -1,6 +1,6 @@
-package org.fmazmz.messagemanager.domain.repository;
+package org.fmazmz.messagemanager.repository;
 
-import org.fmazmz.messagemanager.domain.model.Message;
+import org.fmazmz.messagemanager.model.Message;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;

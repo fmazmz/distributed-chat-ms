@@ -1,4 +1,6 @@
-package org.fmazmz.messagemanager.application.user;
+package org.fmazmz.messagemanager.service;
+
+import org.fmazmz.messagemanager.exception.SenderNotFoundException;
 
 import java.util.UUID;
 
@@ -9,7 +11,12 @@ public interface UserProfilePort {
 
     /**
      * Ensures the user exists upstream. Implementations map gRPC NOT_FOUND to {@link
-     * org.fmazmz.messagemanager.domain.exception.SenderNotFoundException}.
+     * SenderNotFoundException}.
      */
     void assertUserExists(UUID userId);
+
+    /**
+     * Retrieves the username from the gRPC server call.
+     */
+    String getUserName(UUID userId);
 }

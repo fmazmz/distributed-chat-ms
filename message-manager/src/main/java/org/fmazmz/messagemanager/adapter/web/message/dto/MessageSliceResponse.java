@@ -1,6 +1,6 @@
-package org.fmazmz.messagemanager.application.message.dto;
+package org.fmazmz.messagemanager.adapter.web.message.dto;
 
-import org.fmazmz.messagemanager.domain.model.Message;
+import org.fmazmz.messagemanager.model.Message;
 import org.springframework.data.domain.Page;
 
 import java.util.List;

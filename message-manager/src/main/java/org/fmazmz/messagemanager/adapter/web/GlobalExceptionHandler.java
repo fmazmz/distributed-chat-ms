@@ -1,7 +1,6 @@
 package org.fmazmz.messagemanager.adapter.web;
 
-import org.fmazmz.messagemanager.domain.exception.RoomNotFoundException;
-import org.fmazmz.messagemanager.domain.exception.SenderNotFoundException;
+import org.fmazmz.messagemanager.exception.SenderNotFoundException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
 import org.springframework.web.bind.annotation.ExceptionHandler;

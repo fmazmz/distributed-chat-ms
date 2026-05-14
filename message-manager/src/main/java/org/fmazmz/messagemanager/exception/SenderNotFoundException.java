@@ -1,4 +1,4 @@
-package org.fmazmz.messagemanager.domain.exception;
+package org.fmazmz.messagemanager.exception;
 
 import java.util.UUID;
 

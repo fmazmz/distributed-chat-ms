@@ -7,6 +7,11 @@ spring:
         user-manager:
           address: static://${USER_MANAGER_GRPC_HOST:user-manager}:${USER_MANAGER_GRPC_PORT:9090}
           negotiation-type: plaintext
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          jwk-set-uri: http://auth-manager:8080/.well-known/jwks.json
   datasource:
     driver-class-name: org.postgresql.Driver
     url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/message_db}

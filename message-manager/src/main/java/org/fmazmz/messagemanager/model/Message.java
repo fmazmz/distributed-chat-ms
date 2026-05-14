@@ -1,4 +1,4 @@
-package org.fmazmz.messagemanager.domain.model;
+package org.fmazmz.messagemanager.model;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Size;
@@ -21,10 +21,6 @@ public class Message {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
     private UUID senderId;
-
-    @ManyToOne(optional = false, fetch = FetchType.LAZY)
-    @JoinColumn(name = "room_id", nullable = false)
-    private Room room;
 
     @Column(columnDefinition = "TEXT")
     @Size(max = 5000)

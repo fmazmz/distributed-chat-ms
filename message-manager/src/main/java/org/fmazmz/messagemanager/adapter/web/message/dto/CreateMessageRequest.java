@@ -1,4 +1,4 @@
-package org.fmazmz.messagemanager.application.message.dto;
+package org.fmazmz.messagemanager.adapter.web.message.dto;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;

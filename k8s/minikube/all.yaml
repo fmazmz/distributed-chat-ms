@@ -1,6 +1,19 @@
 # Apply with:
 #   minikube kubectl -- apply -f k8s/minikube/all.yaml
 # Images must exist in the Docker daemon.
+#
+# Databases (this file): one Postgres pod; each app gets its own DATABASE on that server
+# (user_db, message_db, auth_db). JDBC URL uses the in-cluster Service name `postgres:5432`.
+# That is cheap for local/minikube. In production you often either:
+#   - keep one managed Postgres with multiple DBs + strong roles per DB, or
+#   - one managed instance per service (RDS, Cloud SQL, etc.) and only Secrets/env differ, or
+#   - an operator (e.g. CloudNativePG) with one cluster per team/service.
+#
+# JWT for auth-manager in a real cluster: create a secret before apply, e.g.
+#   openssl genpkey -algorithm RSA -out /tmp/jwt.pem -pkeyopt rsa_keygen_bits:2048
+#   kubectl create secret generic auth-manager-jwt \
+#     --from-literal=jwt-rsa-pem-b64="$(base64 -w0 /tmp/jwt.pem)" --dry-run=client -o yaml | minikube kubectl -- apply -f -
+# Then set env JWT_RSA_PRIVATE_KEY_B64 from that secret (see auth-manager Deployment below).
 ---
 apiVersion: v1
 kind: Secret
@@ -16,6 +29,8 @@ metadata:
 data:
   01-create-message-db.sql: |
     CREATE DATABASE message_db;
+  02-create-auth-db.sql: |
+    CREATE DATABASE auth_db;
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -111,6 +126,58 @@ spec:
     - name: grpc
       port: 9090
       targetPort: 9090
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: auth-manager
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: auth-manager
+  template:
+    metadata:
+      labels:
+        app: auth-manager
+    spec:
+      containers:
+        - name: app
+          image: auth-manager:local
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 8080
+          env:
+            - name: DATASOURCE_URL
+              value: jdbc:postgresql://postgres:5432/auth_db
+            - name: DATASOURCE_USERNAME
+              value: root
+            - name: DATASOURCE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-secret
+                  key: password
+            # Optional stable signing key (omit for ephemeral RSA on each pod restart):
+            # kubectl create secret generic auth-manager-jwt \
+            #   --from-literal=jwt-rsa-pem-b64="$(base64 -w0 jwt-rsa.pem)" --dry-run=client -o yaml | kubectl apply -f -
+            # Then uncomment:
+            # - name: JWT_RSA_PRIVATE_KEY_B64
+            #   valueFrom:
+            #     secretKeyRef:
+            #       name: auth-manager-jwt
+            #       key: jwt-rsa-pem-b64
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: auth-manager
+spec:
+  selector:
+    app: auth-manager
+  ports:
+    - name: http
+      port: 8080
+      targetPort: 8080
 ---
 apiVersion: apps/v1
 kind: Deployment

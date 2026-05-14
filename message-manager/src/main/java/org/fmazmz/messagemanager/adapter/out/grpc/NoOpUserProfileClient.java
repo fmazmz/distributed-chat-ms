@@ -1,6 +1,6 @@
 package org.fmazmz.messagemanager.adapter.out.grpc;
 
-import org.fmazmz.messagemanager.application.user.UserProfilePort;
+import org.fmazmz.messagemanager.service.UserProfilePort;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
