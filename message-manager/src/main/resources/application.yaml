@@ -5,7 +5,7 @@ spring:
     client:
       channels:
         user-manager:
-          address: static://${USER_MANAGER_GRPC_HOST:127.0.0.1}:${USER_MANAGER_GRPC_PORT:9090}
+          address: static://${USER_MANAGER_GRPC_HOST:user-manager}:${USER_MANAGER_GRPC_PORT:9090}
           negotiation-type: plaintext
   datasource:
     driver-class-name: org.postgresql.Driver

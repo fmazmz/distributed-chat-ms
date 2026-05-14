@@ -24,7 +24,7 @@ public class RoomApplicationService {
     public RoomResponse createRoom(CreateRoomRequest request) {
         Room room = new Room();
         room.setName(request.name());
-        roomRepository.save(room);
+        roomRepository.saveAndFlush(room);
         return RoomResponse.from(room);
     }
 
