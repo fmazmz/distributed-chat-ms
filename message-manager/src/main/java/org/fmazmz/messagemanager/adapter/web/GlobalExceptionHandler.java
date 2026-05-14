@@ -9,13 +9,6 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
-    @ExceptionHandler(RoomNotFoundException.class)
-    ProblemDetail handleRoomNotFound(RoomNotFoundException ex) {
-        ProblemDetail detail = ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, ex.getMessage());
-        detail.setTitle("Room not found");
-        return detail;
-    }
-
     @ExceptionHandler(SenderNotFoundException.class)
     ProblemDetail handleSenderNotFound(SenderNotFoundException ex) {
         ProblemDetail detail = ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, ex.getMessage());

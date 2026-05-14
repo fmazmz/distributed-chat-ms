@@ -17,4 +17,9 @@ public class NoOpUserProfileClient implements UserProfilePort {
     public void assertUserExists(UUID userId) {
         // intentionally empty
     }
+
+    @Override
+    public String getUserName(UUID userId) {
+        return "";
+    }
 }
