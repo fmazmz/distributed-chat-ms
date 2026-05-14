@@ -1,6 +1,6 @@
-# Minikube = local Kubernetes. Apply with:
+# Apply with:
 #   minikube kubectl -- apply -f k8s/minikube/all.yaml
-# Images must exist in the Docker daemon Minikube uses (build with: eval $(minikube docker-env) && docker build ...).
+# Images must exist in the Docker daemon.
 ---
 apiVersion: v1
 kind: Secret

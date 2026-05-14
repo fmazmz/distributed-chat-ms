@@ -10,13 +10,21 @@ spring:
     hibernate:
       ddl-auto: update
 
+# Other services (resource servers) can use:
+#   spring.security.oauth2.resourceserver.jwt.jwk-set-uri: http://auth-manager:8080/.well-known/jwks.json
+# (host/port/path to reach this app from that network.)
+
 app:
   jwt:
     issuer: auth-manager
-    # HS256
-    secret: ${JWT_SECRET}
+    # Published in JWT header and at GET /.well-known/jwks.json; change when rotating keys.
+    key-id: auth-manager-key-1
     access-token-ttl: PT15M
     refresh-token-ttl: PT15M
+    rsa:
+      # From .env / environment (no file). Prefer JWT_RSA_PRIVATE_KEY_B64 for a single-line secret.
+      private-key-pem: ${JWT_RSA_PRIVATE_KEY:}
+      private-key-pem-base64: ${JWT_RSA_PRIVATE_KEY_B64:}
   webauthn:
     rp-id: localhost
     rp-name: distributed-chat

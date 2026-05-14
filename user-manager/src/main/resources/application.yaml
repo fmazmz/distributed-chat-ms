@@ -1,4 +1,9 @@
 spring:
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          jwk-set-uri: http://auth-manager:8080/.well-known/jwks.json
   application:
     name: user-service
   # gRPC (Netty): use this port from other services / Minikube (e.g. user-service:9090).

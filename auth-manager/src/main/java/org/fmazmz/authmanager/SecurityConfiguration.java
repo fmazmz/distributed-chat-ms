@@ -1,4 +1,4 @@
-package org.fmazmz.authmanager.config;
+package org.fmazmz.authmanager;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -13,6 +13,7 @@ import org.springframework.security.web.SecurityFilterChain;
 @EnableMethodSecurity
 public class SecurityConfiguration {
     private static final String[] WHITE_LIST_URL = {
+            "/.well-known/**",
             "/api/v1/auth/**",
             "/v2/api-docs",
             "/v3/api-docs",

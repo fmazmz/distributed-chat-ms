@@ -10,6 +10,7 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 public class AuthManagerApplication {
 
 	public static void main(String[] args) {
+		DotenvBootstrap.apply();
 		SpringApplication.run(AuthManagerApplication.class, args);
 	}
 
