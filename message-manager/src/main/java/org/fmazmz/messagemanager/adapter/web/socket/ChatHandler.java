@@ -5,9 +5,15 @@ import lombok.extern.slf4j.Slf4j;
 import org.fmazmz.messagemanager.adapter.web.dto.session.AcceptChatDto;
 import org.fmazmz.messagemanager.adapter.web.dto.session.ChatMessageDto;
 import org.fmazmz.messagemanager.adapter.web.dto.session.ChatRequestDto;
+import org.fmazmz.messagemanager.exception.ChatSessionAccessDeniedException;
+import org.fmazmz.messagemanager.exception.ChatSessionNotFoundException;
+import org.fmazmz.messagemanager.exception.MessageOperationException;
+import org.fmazmz.messagemanager.exception.SenderNotFoundException;
 import org.fmazmz.messagemanager.model.ChatSession;
 import org.fmazmz.messagemanager.model.ChatStatus;
 import org.fmazmz.messagemanager.security.JwtUtils;
+import org.fmazmz.messagemanager.service.ChatSessionLifecycleService;
+import org.fmazmz.messagemanager.service.MessageApplicationService;
 import org.fmazmz.messagemanager.service.UserProfilePort;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.CloseStatus;
@@ -26,19 +32,27 @@ public class ChatHandler extends TextWebSocketHandler {
 
     private final JwtUtils jwtUtils;
     private final UserProfilePort userProfileClient;
+    private final ChatSessionLifecycleService chatSessionLifecycleService;
+    private final MessageApplicationService messageApplicationService;
 
     private final Map<UUID, WebSocketSession> activeConnections = new ConcurrentHashMap<>();
     private final Map<UUID, ChatSession> chatSessions = new ConcurrentHashMap<>();
     private final ObjectMapper objectMapper = new ObjectMapper();
 
-    public ChatHandler(JwtUtils jwtUtils, UserProfilePort userProfileClient) {
+    public ChatHandler(
+            JwtUtils jwtUtils,
+            UserProfilePort userProfileClient,
+            ChatSessionLifecycleService chatSessionLifecycleService,
+            MessageApplicationService messageApplicationService
+    ) {
         this.jwtUtils = jwtUtils;
         this.userProfileClient = userProfileClient;
+        this.chatSessionLifecycleService = chatSessionLifecycleService;
+        this.messageApplicationService = messageApplicationService;
     }
 
     @Override
     public void afterConnectionEstablished(WebSocketSession session) throws Exception {
-        // Authenticate user
         String authHeader = session.getHandshakeHeaders().getFirst("Authorization");
         UUID userId = jwtUtils.validateTokenAndGetUserId(authHeader);
         String userName = userProfileClient.getUserName(userId);
@@ -65,15 +79,17 @@ public class ChatHandler extends TextWebSocketHandler {
                 ChatMessageDto dto = objectMapper.treeToValue(json.get("data"), ChatMessageDto.class);
                 handleChatMessage(sender, dto);
             }
+            default ->
+                    sender.sendMessage(new TextMessage(objectMapper.writeValueAsString(
+                            Map.of("type", "ERROR", "message", "Unsupported message type: " + type)
+                    )));
         }
     }
 
     @Override
     public void afterConnectionClosed(WebSocketSession ws, CloseStatus status) {
-        // Remove from active connections
         activeConnections.values().removeIf(session -> session == ws);
 
-        // Remove any chat sessions involving this user
         chatSessions.values().removeIf(session ->
                 session.getRequesterWs() == ws || session.getRecipientWs() == ws
         );
@@ -84,11 +100,12 @@ public class ChatHandler extends TextWebSocketHandler {
         UUID recipientId = dto.toUserId();
         String requesterIp = getClientIp(sender);
 
-        ChatSession session = new ChatSession(requesterId, requesterIp, recipientId);
+        UUID sessionId = UUID.randomUUID();
+        ChatSession session = new ChatSession(sessionId, requesterId, requesterIp, recipientId);
         session.setRequesterWs(sender);
-        chatSessions.put(session.getSessionId(), session);
+        chatSessions.put(sessionId, session);
+        chatSessionLifecycleService.registerPending(sessionId, requesterId, recipientId);
 
-        // Optionally notify recipient
         WebSocketSession recipientWs = activeConnections.get(recipientId);
         if (recipientWs != null && recipientWs.isOpen()) {
             recipientWs.sendMessage(new TextMessage(objectMapper.writeValueAsString(
@@ -97,14 +114,24 @@ public class ChatHandler extends TextWebSocketHandler {
         }
     }
 
-    private void handleAcceptChat(WebSocketSession sender, AcceptChatDto dto) {
+    private void handleAcceptChat(WebSocketSession sender, AcceptChatDto dto) throws IOException {
         UUID sessionId = dto.sessionId();
         ChatSession session = chatSessions.get(sessionId);
-        if (session != null && session.getRecipientId().equals(getUserId(sender))) {
-            session.setRecipientWs(sender);
-            session.setRecipientIp(getClientIp(sender));
-            session.setStatus(ChatStatus.ACTIVE);
+        if (session == null || !session.getRecipientId().equals(getUserId(sender))) {
+            return;
         }
+        try {
+            chatSessionLifecycleService.markActive(sessionId, getUserId(sender));
+        } catch (ChatSessionNotFoundException | ChatSessionAccessDeniedException ex) {
+            log.warn("Accept chat failed: {}", ex.getMessage());
+            sender.sendMessage(new TextMessage(objectMapper.writeValueAsString(
+                    Map.of("type", "ERROR", "message", ex.getMessage())
+            )));
+            return;
+        }
+        session.setRecipientWs(sender);
+        session.setRecipientIp(getClientIp(sender));
+        session.setStatus(ChatStatus.ACTIVE);
     }
 
     private void handleChatMessage(WebSocketSession sender, ChatMessageDto dto) throws IOException {
@@ -112,6 +139,20 @@ public class ChatHandler extends TextWebSocketHandler {
         ChatSession session = chatSessions.get(sessionId);
         if (session == null || session.getStatus() != ChatStatus.ACTIVE) {
             sender.sendMessage(new TextMessage("Chat not active yet"));
+            return;
+        }
+
+        try {
+            messageApplicationService.persistAndPublishChatMessage(sessionId, getUserId(sender), dto.content());
+        } catch (MessageOperationException | ChatSessionNotFoundException | ChatSessionAccessDeniedException ex) {
+            sender.sendMessage(new TextMessage(objectMapper.writeValueAsString(
+                    Map.of("type", "ERROR", "message", ex.getMessage())
+            )));
+            return;
+        } catch (SenderNotFoundException ex) {
+            sender.sendMessage(new TextMessage(objectMapper.writeValueAsString(
+                    Map.of("type", "ERROR", "message", "Sender not verified")
+            )));
             return;
         }
 

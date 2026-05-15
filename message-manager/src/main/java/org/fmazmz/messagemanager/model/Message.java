@@ -20,6 +20,11 @@ public class Message {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
+
+    @Column(nullable = false)
+    private UUID chatSessionId;
+
+    @Column(nullable = false)
     private UUID senderId;
 
     @Column(columnDefinition = "TEXT")

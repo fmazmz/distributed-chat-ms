@@ -4,6 +4,7 @@
 #
 # Databases (this file): one Postgres Deployment + Service per app (user, message, auth).
 # JDBC URLs use separate in-cluster DNS: postgres-user, postgres-message, postgres-auth.
+# Kafka: single-node KRaft broker for message-events ( apache/kafka; same pattern as upstream compose example ).
 # Same Secret password for simplicity; use distinct Secrets in production.
 #
 # JWT for auth-manager in a real cluster: create a secret before apply, e.g.
@@ -145,6 +146,80 @@ spec:
 apiVersion: apps/v1
 kind: Deployment
 metadata:
+  name: kafka
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: kafka
+  template:
+    metadata:
+      labels:
+        app: kafka
+    spec:
+      containers:
+        - name: kafka
+          image: apache/kafka:4.1.1
+          ports:
+            - containerPort: 9092
+            - containerPort: 29093
+          readinessProbe:
+            tcpSocket:
+              port: 9092
+            initialDelaySeconds: 15
+            periodSeconds: 5
+            timeoutSeconds: 5
+          env:
+            - name: CLUSTER_ID
+              value: "4L6g3nShT-eMCtK--X86sw"
+            - name: KAFKA_NODE_ID
+              value: "1"
+            - name: KAFKA_PROCESS_ROLES
+              value: "broker,controller"
+            - name: KAFKA_LISTENER_SECURITY_PROTOCOL_MAP
+              value: "CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT"
+            - name: KAFKA_LISTENERS
+              value: "CONTROLLER://0.0.0.0:29093,PLAINTEXT://0.0.0.0:9092"
+            - name: KAFKA_ADVERTISED_LISTENERS
+              value: "PLAINTEXT://kafka:9092"
+            - name: KAFKA_CONTROLLER_LISTENER_NAMES
+              value: "CONTROLLER"
+            - name: KAFKA_INTER_BROKER_LISTENER_NAME
+              value: "PLAINTEXT"
+            # Controller must reach itself on loopback inside the pod — using kafka:29093 hits
+            # ClusterIP and often fails (hairpin / unreachable controller from same pod).
+            - name: KAFKA_CONTROLLER_QUORUM_VOTERS
+              value: "1@127.0.0.1:29093"
+            - name: KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR
+              value: "1"
+            - name: KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR
+              value: "1"
+            - name: KAFKA_TRANSACTION_STATE_LOG_MIN_ISR
+              value: "1"
+            - name: KAFKA_SHARE_COORDINATOR_STATE_TOPIC_REPLICATION_FACTOR
+              value: "1"
+            - name: KAFKA_SHARE_COORDINATOR_STATE_TOPIC_MIN_ISR
+              value: "1"
+            - name: KAFKA_LOG_DIRS
+              value: "/tmp/kraft-combined-logs"
+            - name: KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS
+              value: "0"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: kafka
+spec:
+  selector:
+    app: kafka
+  ports:
+    - name: plaintext
+      port: 9092
+      targetPort: 9092
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
   name: user-manager
 spec:
   replicas: 1
@@ -281,6 +356,8 @@ spec:
               value: user-manager
             - name: USER_MANAGER_GRPC_PORT
               value: "9090"
+            - name: SPRING_KAFKA_BOOTSTRAP_SERVERS
+              value: kafka:9092
 ---
 apiVersion: v1
 kind: Service

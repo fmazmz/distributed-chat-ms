@@ -65,7 +65,7 @@ minikube kubectl -- apply -f "${MANIFEST}"
 echo ">>> rollout restart (apps)"
 minikube kubectl -- rollout restart deployment/user-manager deployment/auth-manager deployment/message-manager
 
-for d in postgres-user postgres-message postgres-auth user-manager auth-manager message-manager; do
+for d in kafka postgres-user postgres-message postgres-auth user-manager auth-manager message-manager; do
   echo ">>> wait: ${d}"
   minikube kubectl -- rollout status "deployment/${d}" --timeout=240s
 done

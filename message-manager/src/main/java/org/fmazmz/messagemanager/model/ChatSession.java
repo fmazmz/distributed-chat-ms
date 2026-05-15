@@ -11,7 +11,7 @@ import java.util.UUID;
 @Setter
 public class ChatSession {
 
-    private final UUID sessionId = UUID.randomUUID();
+    private final UUID sessionId;
 
     private final UUID requesterId;
     private WebSocketSession requesterWs;
@@ -24,7 +24,8 @@ public class ChatSession {
     private ChatStatus status = ChatStatus.PENDING;
     private final Instant createdAt = Instant.now();
 
-    public ChatSession(UUID requesterId, String requesterIp, UUID recipientId) {
+    public ChatSession(UUID sessionId, UUID requesterId, String requesterIp, UUID recipientId) {
+        this.sessionId = sessionId;
         this.requesterId = requesterId;
         this.requesterIp = requesterIp;
         this.recipientId = recipientId;
