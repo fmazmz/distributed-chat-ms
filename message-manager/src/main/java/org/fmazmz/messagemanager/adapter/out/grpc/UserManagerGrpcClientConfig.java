@@ -9,10 +9,6 @@ import org.springframework.grpc.client.GrpcChannelFactory;
 @Configuration
 public class UserManagerGrpcClientConfig {
 
-    /**
-     * Explicit bean so IDEs and {@code @Autowired} resolve {@link UserManagerGrpc.UserManagerBlockingStub}.
-     * Channel name must match {@code spring.grpc.client.channels.*} in application.yaml.
-     */
     @Bean
     @ConditionalOnProperty(name = "messagemanager.user-grpc.validate-sender", havingValue = "true", matchIfMissing = true)
     UserManagerGrpc.UserManagerBlockingStub userManagerBlockingStub(GrpcChannelFactory channels) {

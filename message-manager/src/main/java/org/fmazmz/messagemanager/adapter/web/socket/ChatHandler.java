@@ -54,6 +54,12 @@ public class ChatHandler extends TextWebSocketHandler {
     @Override
     public void afterConnectionEstablished(WebSocketSession session) throws Exception {
         String authHeader = session.getHandshakeHeaders().getFirst("Authorization");
+        if (authHeader == null || authHeader.isBlank()) {
+            Object attr = session.getAttributes().get(ChatJwtHandshakeInterceptor.BEARER_ATTRIBUTE);
+            if (attr instanceof String bearer) {
+                authHeader = bearer;
+            }
+        }
         UUID userId = jwtUtils.validateTokenAndGetUserId(authHeader);
         String userName = userProfileClient.getUserName(userId);
         activeConnections.put(userId, session);
@@ -106,6 +112,14 @@ public class ChatHandler extends TextWebSocketHandler {
         chatSessions.put(sessionId, session);
         chatSessionLifecycleService.registerPending(sessionId, requesterId, recipientId);
 
+        sender.sendMessage(new TextMessage(objectMapper.writeValueAsString(
+                Map.of(
+                        "type", "CHAT_INVITE_SENT",
+                        "sessionId", session.getSessionId(),
+                        "toUserId", recipientId
+                )
+        )));
+
         WebSocketSession recipientWs = activeConnections.get(recipientId);
         if (recipientWs != null && recipientWs.isOpen()) {
             recipientWs.sendMessage(new TextMessage(objectMapper.writeValueAsString(
@@ -132,6 +146,13 @@ public class ChatHandler extends TextWebSocketHandler {
         session.setRecipientWs(sender);
         session.setRecipientIp(getClientIp(sender));
         session.setStatus(ChatStatus.ACTIVE);
+
+        WebSocketSession requesterWs = session.getRequesterWs();
+        if (requesterWs != null && requesterWs.isOpen()) {
+            requesterWs.sendMessage(new TextMessage(objectMapper.writeValueAsString(
+                    Map.of("type", "CHAT_ACTIVE", "sessionId", session.getSessionId())
+            )));
+        }
     }
 
     private void handleChatMessage(WebSocketSession sender, ChatMessageDto dto) throws IOException {

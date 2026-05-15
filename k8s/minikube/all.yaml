@@ -4,8 +4,11 @@
 #
 # Databases (this file): one Postgres Deployment + Service per app (user, message, auth).
 # JDBC URLs use separate in-cluster DNS: postgres-user, postgres-message, postgres-auth.
-# Kafka: single-node KRaft broker for message-events ( apache/kafka; same pattern as upstream compose example ).
+# Kafka: single-node KRaft broker; message-manager publishes to topic `message-published`.
 # Same Secret password for simplicity; use distinct Secrets in production.
+#
+# BFF: single browser-facing HTTP entry (register/login/messages/me). Build image bff:local and add to deploy-minikube.sh loop.
+# SPA WebSocket URL env matches port-forward example for message-manager (see bff Deployment MESSAGE_MANAGER_WEBSOCKET_URL).
 #
 # JWT for auth-manager in a real cluster: create a secret before apply, e.g.
 #   openssl genpkey -algorithm RSA -out /tmp/jwt.pem -pkeyopt rsa_keygen_bits:2048

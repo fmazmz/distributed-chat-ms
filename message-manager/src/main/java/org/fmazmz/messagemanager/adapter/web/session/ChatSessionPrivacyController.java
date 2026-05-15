@@ -25,7 +25,7 @@ public class ChatSessionPrivacyController {
     @DeleteMapping("/{sessionId}/data")
     public ResponseEntity<Void> deleteSessionAndMessages(
             @AuthenticationPrincipal Jwt jwt,
-            @PathVariable("sessionId") UUID sessionId
+            @PathVariable UUID sessionId
     ) {
         UUID userId = UUID.fromString(jwt.getSubject());
         messageApplicationService.purgeSessionForUser(sessionId, userId);

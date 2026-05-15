@@ -11,11 +11,12 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.UUID;
+
 @RestController
 @RequestMapping(
         path = "api/v1/users",
-        produces = MediaType.APPLICATION_JSON_VALUE,
-        consumes = MediaType.APPLICATION_JSON_VALUE
+        produces = MediaType.APPLICATION_JSON_VALUE
 )
 public class UserController {
     private final UserDetailService service;
@@ -24,7 +25,7 @@ public class UserController {
         this.service = service;
     }
 
-    @PostMapping
+    @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<ApiResponse<NewUserResponse>> newUser(
             @RequestBody@Valid NewUserRequest request) {
 
@@ -35,10 +36,9 @@ public class UserController {
     }
 
     @GetMapping("details")
-    public ResponseEntity<ApiResponse<UserDetailsResponse>> getUser(
-            @RequestBody@Valid UserDetailsRequest request) {
+    public ResponseEntity<ApiResponse<UserDetailsResponse>> getUser(@RequestParam("id") UUID id) {
 
-        UserDetailsResponse response = service.getUserDetails(request);
+        UserDetailsResponse response = service.getUserDetails(new UserDetailsRequest(id));
 
         return ResponseEntity.ok(ApiResponse.success(response));
     }

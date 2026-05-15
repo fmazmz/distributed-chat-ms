@@ -1,6 +1,6 @@
 package org.fmazmz.messagemanager.platform.kafka;
 
-import org.fmazmz.messagemanager.event.MessageSentEvent;
+import org.fmazmz.messagemanager.platform.kafka.event.MessageSentEvent;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 
@@ -12,6 +12,6 @@ public class MessageEventPublisher extends KafkaService {
     }
 
     public void publishMessageSent(MessageSentEvent event) {
-        publish(Topics.MESSAGE_EVENT_TOPIC, event.chatSessionId().toString(), event);
+        publish(Topics.MESSAGE_PUBLISHED_TOPIC, event.chatSessionId().toString(), event);
     }
 }

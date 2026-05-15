@@ -2,7 +2,7 @@ package org.fmazmz.messagemanager.service;
 
 import lombok.RequiredArgsConstructor;
 import org.fmazmz.messagemanager.platform.kafka.MessageEventPublisher;
-import org.fmazmz.messagemanager.event.MessageSentEvent;
+import org.fmazmz.messagemanager.platform.kafka.event.MessageSentEvent;
 import org.fmazmz.messagemanager.exception.ChatSessionAccessDeniedException;
 import org.fmazmz.messagemanager.exception.ChatSessionNotFoundException;
 import org.fmazmz.messagemanager.exception.MessageOperationException;
@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -55,6 +56,16 @@ public class MessageApplicationService {
         );
 
         return saved;
+    }
+
+    @Transactional(readOnly = true)
+    public List<Message> listMessagesForParticipant(UUID chatSessionId, UUID userId) {
+        ChatSessionEntity session = chatSessionRepository.findById(chatSessionId)
+                .orElseThrow(() -> new ChatSessionNotFoundException(chatSessionId));
+        if (!session.hasParticipant(userId)) {
+            throw new ChatSessionAccessDeniedException(chatSessionId, userId);
+        }
+        return messageRepository.findByChatSessionIdOrderByCreatedAtAsc(chatSessionId);
     }
 
     /**

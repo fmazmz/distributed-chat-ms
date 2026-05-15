@@ -22,9 +22,9 @@ spring:
       ddl-auto: update
   kafka:
     bootstrap-servers: localhost:9092
-    topic-name: message-manager
+    topic-name: message-events
     consumer:
-      group-id: message-manager-events
+      group-id: message-manager-group
       auto-offset-reset: earliest
       key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
       value-deserializer: org.springframework.kafka.support.serializer.JacksonJsonDeserializer

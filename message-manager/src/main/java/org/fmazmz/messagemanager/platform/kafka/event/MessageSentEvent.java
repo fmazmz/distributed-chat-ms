@@ -1,4 +1,4 @@
-package org.fmazmz.messagemanager.event;
+package org.fmazmz.messagemanager.platform.kafka.event;
 
 import java.time.Instant;
 import java.util.UUID;
