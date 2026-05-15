@@ -2,12 +2,9 @@
 #   minikube kubectl -- apply -f k8s/minikube/all.yaml
 # Images must exist in the Docker daemon.
 #
-# Databases (this file): one Postgres pod; each app gets its own DATABASE on that server
-# (user_db, message_db, auth_db). JDBC URL uses the in-cluster Service name `postgres:5432`.
-# That is cheap for local/minikube. In production you often either:
-#   - keep one managed Postgres with multiple DBs + strong roles per DB, or
-#   - one managed instance per service (RDS, Cloud SQL, etc.) and only Secrets/env differ, or
-#   - an operator (e.g. CloudNativePG) with one cluster per team/service.
+# Databases (this file): one Postgres Deployment + Service per app (user, message, auth).
+# JDBC URLs use separate in-cluster DNS: postgres-user, postgres-message, postgres-auth.
+# Same Secret password for simplicity; use distinct Secrets in production.
 #
 # JWT for auth-manager in a real cluster: create a secret before apply, e.g.
 #   openssl genpkey -algorithm RSA -out /tmp/jwt.pem -pkeyopt rsa_keygen_bits:2048
@@ -22,29 +19,19 @@ metadata:
 stringData:
   password: root
 ---
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: postgres-init
-data:
-  01-create-message-db.sql: |
-    CREATE DATABASE message_db;
-  02-create-auth-db.sql: |
-    CREATE DATABASE auth_db;
----
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: postgres
+  name: postgres-user
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: postgres
+      app: postgres-user
   template:
     metadata:
       labels:
-        app: postgres
+        app: postgres-user
     spec:
       containers:
         - name: postgres
@@ -61,21 +48,96 @@ spec:
                   key: password
             - name: POSTGRES_DB
               value: user_db
-          volumeMounts:
-            - name: init
-              mountPath: /docker-entrypoint-initdb.d
-      volumes:
-        - name: init
-          configMap:
-            name: postgres-init
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: postgres
+  name: postgres-user
 spec:
   selector:
-    app: postgres
+    app: postgres-user
+  ports:
+    - port: 5432
+      targetPort: 5432
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: postgres-message
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: postgres-message
+  template:
+    metadata:
+      labels:
+        app: postgres-message
+    spec:
+      containers:
+        - name: postgres
+          image: postgres:16
+          ports:
+            - containerPort: 5432
+          env:
+            - name: POSTGRES_USER
+              value: root
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-secret
+                  key: password
+            - name: POSTGRES_DB
+              value: message_db
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres-message
+spec:
+  selector:
+    app: postgres-message
+  ports:
+    - port: 5432
+      targetPort: 5432
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: postgres-auth
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: postgres-auth
+  template:
+    metadata:
+      labels:
+        app: postgres-auth
+    spec:
+      containers:
+        - name: postgres
+          image: postgres:16
+          ports:
+            - containerPort: 5432
+          env:
+            - name: POSTGRES_USER
+              value: root
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-secret
+                  key: password
+            - name: POSTGRES_DB
+              value: auth_db
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres-auth
+spec:
+  selector:
+    app: postgres-auth
   ports:
     - port: 5432
       targetPort: 5432
@@ -103,7 +165,7 @@ spec:
             - containerPort: 9090
           env:
             - name: SPRING_DATASOURCE_URL
-              value: jdbc:postgresql://postgres:5432/user_db
+              value: jdbc:postgresql://postgres-user:5432/user_db
             - name: SPRING_DATASOURCE_USERNAME
               value: root
             - name: SPRING_DATASOURCE_PASSWORD
@@ -149,7 +211,7 @@ spec:
             - containerPort: 8080
           env:
             - name: DATASOURCE_URL
-              value: jdbc:postgresql://postgres:5432/auth_db
+              value: jdbc:postgresql://postgres-auth:5432/auth_db
             - name: DATASOURCE_USERNAME
               value: root
             - name: DATASOURCE_PASSWORD
@@ -198,10 +260,16 @@ spec:
           image: message-manager:local
           imagePullPolicy: Never
           ports:
-            - containerPort: 8081
+            - containerPort: 8080
+          readinessProbe:
+            tcpSocket:
+              port: 8080
+            initialDelaySeconds: 3
+            periodSeconds: 2
+            failureThreshold: 30
           env:
             - name: SPRING_DATASOURCE_URL
-              value: jdbc:postgresql://postgres:5432/message_db
+              value: jdbc:postgresql://postgres-message:5432/message_db
             - name: SPRING_DATASOURCE_USERNAME
               value: root
             - name: SPRING_DATASOURCE_PASSWORD
@@ -223,5 +291,5 @@ spec:
     app: message-manager
   ports:
     - name: http
-      port: 8081
-      targetPort: 8081
+      port: 8080
+      targetPort: 8080
