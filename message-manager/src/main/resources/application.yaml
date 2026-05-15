@@ -21,7 +21,7 @@ spring:
     hibernate:
       ddl-auto: update
 server:
-  port: ${SERVER_PORT:8081}
+  port: ${SERVER_PORT:8080}
 
 messagemanager:
   user-grpc:
