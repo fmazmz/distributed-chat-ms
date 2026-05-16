@@ -12,5 +12,6 @@ public class BffProperties {
     private String authManagerUrl = "http://localhost:8081";
     private String userManagerUrl = "http://localhost:8082";
     private String messageManagerUrl = "http://localhost:8083";
-    private String messageWebSocketUrl = "ws://localhost:8083/chat";
+    /** Internal URL (from BFF pod) to message-manager WebSocket; browser uses /ws/chat on BFF. */
+    private String messageManagerWebSocketUrl = "ws://127.0.0.1:8083/chat";
 }

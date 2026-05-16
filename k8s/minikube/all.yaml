@@ -403,7 +403,7 @@ spec:
               value: http://user-manager:8080
             - name: APP_MESSAGE_MANAGER_URL
               value: http://message-manager:8080
-            - name: APP_MESSAGE_WEBSOCKET_URL
+            - name: APP_MESSAGE_MANAGER_WEBSOCKET_URL
               value: ws://message-manager:8080/chat
 ---
 apiVersion: v1

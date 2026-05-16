@@ -40,6 +40,8 @@
 
       <p id="ws-status" class="status">Connecting…</p>
 
+      <div id="invite-toast" class="invite-toast hidden" role="alert"></div>
+
       <div class="row">
         <label>Chat with user ID
           <input id="peer-id" placeholder="UUID of other user" />
@@ -47,6 +49,7 @@
         <button type="button" id="invite-btn">Send invite</button>
       </div>
 
+      <h2 class="section-title">Incoming invites</h2>
       <div id="pending-invites" class="invites"></div>
 
       <div id="active-chat" class="hidden">
@@ -59,6 +62,6 @@
       </div>
     </section>
   </main>
-  <script src="/app.js"></script>
+  <script src="/app.js?v=5"></script>
 </body>
 </html>

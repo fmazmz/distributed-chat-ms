@@ -178,8 +178,46 @@ button[type="submit"]:hover,
   margin: 0;
 }
 
+.section-title {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--muted);
+  margin: 1rem 0 0.5rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.invite-toast {
+  margin: 0.75rem 0;
+  padding: 0.85rem 1rem;
+  border-radius: 10px;
+  border: 2px solid var(--ok);
+  background: rgba(61, 214, 140, 0.12);
+  color: var(--text);
+  font-size: 0.95rem;
+  animation: pulse-border 1.2s ease-in-out infinite;
+}
+
+.invite-toast.hidden {
+  display: none !important;
+}
+
+@keyframes pulse-border {
+  50% {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(61, 139, 253, 0.25);
+  }
+}
+
 .invites {
-  margin: 1rem 0;
+  margin: 0.5rem 0 1rem;
+  min-height: 2rem;
+}
+
+.invites:empty::after {
+  content: 'No pending invites';
+  color: var(--muted);
+  font-size: 0.85rem;
 }
 
 .invite {
@@ -187,11 +225,12 @@ button[type="submit"]:hover,
   justify-content: space-between;
   align-items: center;
   gap: 0.5rem;
-  padding: 0.65rem;
-  border: 1px solid var(--border);
+  padding: 0.75rem;
+  border: 2px solid var(--accent);
   border-radius: 8px;
   margin-bottom: 0.5rem;
   font-size: 0.9rem;
+  background: rgba(61, 139, 253, 0.08);
 }
 
 .invite button {

@@ -32,7 +32,7 @@ Auth and User are **independent**: no gRPC between them. The BFF links them afte
 
 - **REST (via BFF, JWT):** `POST/GET /api/v1/sessions/{sessionId}/messages`
 - **message-manager** checks sender exists via **gRPC → user-manager** before save, then publishes **`message-published`** to Kafka
-- **WebSocket** `/chat` on message-manager for invites and live chat (connect with same JWT)
+- **WebSocket** via BFF proxy `ws://<bff-host>/ws/chat?token=...` → message-manager `/chat`
 
 ## Client rules
 
@@ -59,4 +59,4 @@ Static HTML/JS is served by **BFF** at `http://localhost:8080/` (`bff/src/main/r
 2. Open two browser profiles (or normal + incognito), register two users, copy each other’s user ID.
 3. Both stay on the chat screen (WebSocket connected), one sends an invite by peer UUID, the other accepts, then message.
 
-WebAuthn `rp-id` is `localhost`; use `http://localhost:8080` (not `127.0.0.1`) if the browser is picky. WebSocket URL defaults to `ws://127.0.0.1:8083/chat` (override with `APP_MESSAGE_WEBSOCKET_URL`).
+WebAuthn `rp-id` is `localhost`; use `http://localhost:8080` (not `127.0.0.1`) if the browser is picky. Chat WebSocket connects to the **same host as the SPA** at `/ws/chat` (BFF proxies to message-manager).

@@ -182,12 +182,18 @@ async function login(userName) {
 let ws = null;
 let me = null;
 let activeSessionId = null;
+let wsReconnectTimer = null;
 
 function showAuth() {
   $('auth-panel').classList.remove('hidden');
   $('chat-panel').classList.add('hidden');
+  if (wsReconnectTimer) {
+    clearTimeout(wsReconnectTimer);
+    wsReconnectTimer = null;
+  }
   if (ws) {
-    ws.close();
+    ws.onclose = null;
+    ws.close(1000);
     ws = null;
   }
 }
@@ -199,15 +205,19 @@ function showChat() {
 
 async function loadMe() {
   me = await api('/api/v1/users/me');
+  me.id = String(me.id);
   $('me-name').textContent = me.userName;
   $('me-id').textContent = me.id;
   return me;
 }
 
 function wsUrl() {
-  const base = me.chatWebSocketUrl.replace(/\/$/, '');
-  const sep = base.includes('?') ? '&' : '?';
-  return base + sep + 'token=' + encodeURIComponent(getToken());
+  const proto = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+  const path = (me && me.chatWebSocketUrl) || '/ws/chat';
+  const base = path.startsWith('ws')
+    ? path.replace(/\/$/, '')
+    : `${proto}//${window.location.host}${path.startsWith('/') ? path : '/' + path}`.replace(/\/$/, '');
+  return `${base}?token=${encodeURIComponent(getToken())}`;
 }
 
 function appendMessage(text, mine) {
@@ -233,42 +243,85 @@ function activateSession(sessionId) {
   loadHistory(sessionId).catch((e) => setStatus($('ws-status'), e.message, 'err'));
 }
 
+const UUID_RE =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
+function isUuid(value) {
+  return UUID_RE.test(String(value).trim());
+}
+
+function handleWsMessage(ev) {
+  let msg;
+  try {
+    msg = JSON.parse(ev.data);
+  } catch {
+    if (activeSessionId) appendMessage(ev.data, false);
+    return;
+  }
+  console.log('WS ←', msg);
+  switch (msg.type) {
+    case 'CHAT_REQUEST':
+      addInvite(String(msg.sessionId), String(msg.fromUserId));
+      break;
+    case 'CHAT_INVITE_SENT':
+      setStatus($('ws-status'), 'Invite sent — waiting for them to accept', 'ok');
+      break;
+    case 'CHAT_PEER_OFFLINE':
+      setStatus($('ws-status'), msg.message || 'That user is not online', 'err');
+      break;
+    case 'CHAT_ACTIVE':
+      activateSession(String(msg.sessionId));
+      hideInviteToast();
+      setStatus($('ws-status'), 'Chat active', 'ok');
+      break;
+    case 'ERROR':
+      setStatus($('ws-status'), msg.message, 'err');
+      break;
+    default:
+      break;
+  }
+}
+
+function scheduleWsReconnect() {
+  if (wsReconnectTimer || $('chat-panel').classList.contains('hidden') || !getToken()) {
+    return;
+  }
+  wsReconnectTimer = setTimeout(() => {
+    wsReconnectTimer = null;
+    connectWebSocket().catch(() => setStatus($('ws-status'), 'Reconnect failed — refresh the page', 'err'));
+  }, 2000);
+}
+
 function connectWebSocket() {
   return new Promise((resolve, reject) => {
+    if (wsReconnectTimer) {
+      clearTimeout(wsReconnectTimer);
+      wsReconnectTimer = null;
+    }
+    if (ws) {
+      ws.onclose = null;
+      ws.onerror = null;
+      try {
+        ws.close(1000);
+      } catch (_) {
+        /* ignore */
+      }
+    }
     ws = new WebSocket(wsUrl());
     ws.onopen = () => {
-      setStatus($('ws-status'), 'Connected to chat', 'ok');
+      setStatus($('ws-status'), 'Connected to chat — keep this tab open (do not refresh)', 'ok');
       resolve();
     };
-    ws.onerror = () => setStatus($('ws-status'), 'WebSocket error', 'err');
-    ws.onclose = () => setStatus($('ws-status'), 'Disconnected', 'err');
-    ws.onmessage = (ev) => {
-      let msg;
-      try {
-        msg = JSON.parse(ev.data);
-      } catch {
-        if (activeSessionId) appendMessage(ev.data, false);
-        return;
-      }
-      switch (msg.type) {
-        case 'CHAT_REQUEST':
-          addInvite(msg.sessionId, msg.fromUserId);
-          break;
-        case 'CHAT_INVITE_SENT':
-          setStatus($('ws-status'), 'Invite sent', 'ok');
-          break;
-        case 'CHAT_ACTIVE':
-          activateSession(msg.sessionId);
-          setStatus($('ws-status'), 'Chat active', 'ok');
-          break;
-        case 'ERROR':
-          setStatus($('ws-status'), msg.message, 'err');
-          break;
-        default:
-          break;
-      }
+    ws.onerror = () => {
+      setStatus($('ws-status'), 'WebSocket failed (check BFF proxy /ws/chat)', 'err');
+      reject(new Error('WebSocket connection failed'));
     };
-    ws.onerror = () => reject(new Error('WebSocket failed'));
+    ws.onclose = (ev) => {
+      if (ev.code === 1000) return;
+      setStatus($('ws-status'), `Disconnected (${ev.code}) — reconnecting…`, 'err');
+      scheduleWsReconnect();
+    };
+    ws.onmessage = handleWsMessage;
   });
 }
 
@@ -276,6 +329,12 @@ function addInvite(sessionId, fromUserId) {
   const box = $('pending-invites');
   const id = 'invite-' + sessionId;
   if (document.getElementById(id)) return;
+
+  showInviteToast('New chat invite — accept below to start talking.');
+  if (Notification.permission === 'granted') {
+    new Notification('Chat invite', { body: `User ${fromUserId} wants to chat` });
+  }
+
   const el = document.createElement('div');
   el.className = 'invite';
   el.id = id;
@@ -284,12 +343,24 @@ function addInvite(sessionId, fromUserId) {
   btn.textContent = 'Accept';
   btn.type = 'button';
   btn.onclick = () => {
-    ws.send(JSON.stringify({ type: 'ACCEPT_CHAT', data: { sessionId } }));
+    sendWs('ACCEPT_CHAT', { sessionId: String(sessionId) });
     activateSession(sessionId);
     el.remove();
+    hideInviteToast();
   };
   el.appendChild(btn);
-  box.appendChild(el);
+  box.prepend(el);
+  el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+function showInviteToast(text) {
+  const toast = $('invite-toast');
+  toast.textContent = text;
+  toast.classList.remove('hidden');
+}
+
+function hideInviteToast() {
+  $('invite-toast').classList.add('hidden');
 }
 
 function sendWs(type, data) {
@@ -302,6 +373,9 @@ function sendWs(type, data) {
 async function enterApp() {
   await loadMe();
   showChat();
+  if (Notification.permission === 'default') {
+    Notification.requestPermission().catch(() => {});
+  }
   await connectWebSocket();
 }
 
@@ -355,9 +429,21 @@ $('logout-btn').addEventListener('click', () => {
 
 $('invite-btn').addEventListener('click', () => {
   const peerId = $('peer-id').value.trim();
-  if (!peerId) return;
+  if (!peerId) {
+    setStatus($('ws-status'), 'Enter the other user’s UUID', 'err');
+    return;
+  }
+  if (!isUuid(peerId)) {
+    setStatus($('ws-status'), 'User ID must be a full UUID', 'err');
+    return;
+  }
+  if (peerId === String(me.id)) {
+    setStatus($('ws-status'), 'You cannot invite yourself', 'err');
+    return;
+  }
   try {
-    sendWs('REQUEST_CHAT', { toUserId: peerId });
+    sendWs('REQUEST_CHAT', { toUserId: peerId.toLowerCase() });
+    setStatus($('ws-status'), 'Sending invite…', '');
   } catch (err) {
     setStatus($('ws-status'), err.message, 'err');
   }

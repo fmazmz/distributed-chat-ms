@@ -23,7 +23,7 @@ public class UserBffController {
     public UserMeResponse me(@AuthenticationPrincipal Jwt jwt) {
         UUID id = UUID.fromString(jwt.getSubject());
         UserDetailsResponse profile = userManagerClient.getUserDetails(id, jwt.getTokenValue());
-        return new UserMeResponse(id, profile.userName(), bffProperties.getMessageWebSocketUrl());
+        return new UserMeResponse(id, profile.userName(), "/ws/chat");
     }
 
     public record UserMeResponse(UUID id, String userName, String chatWebSocketUrl) {}
