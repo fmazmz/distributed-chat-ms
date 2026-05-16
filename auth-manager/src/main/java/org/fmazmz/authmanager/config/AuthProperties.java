@@ -22,8 +22,7 @@ public class AuthProperties {
         private String issuer = "auth-manager";
         /** `kid` in JWT header and JWKS; use a new id when rotating keys. */
         private String keyId = "auth-manager-key-1";
-        private Duration accessTokenTtl = Duration.ofMinutes(15);
-        private Duration refreshTokenTtl = Duration.ofDays(7);
+        private Duration accessTokenTtl = Duration.ofHours(8);
         private final Rsa rsa = new Rsa();
     }
 

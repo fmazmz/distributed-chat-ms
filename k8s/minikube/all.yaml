@@ -373,3 +373,47 @@ spec:
     - name: http
       port: 8080
       targetPort: 8080
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: bff
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: bff
+  template:
+    metadata:
+      labels:
+        app: bff
+    spec:
+      containers:
+        - name: app
+          image: bff:local
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 8080
+          env:
+            - name: APP_JWK_SET_URI
+              value: http://auth-manager:8080/.well-known/jwks.json
+            - name: APP_AUTH_MANAGER_URL
+              value: http://auth-manager:8080
+            - name: APP_USER_MANAGER_URL
+              value: http://user-manager:8080
+            - name: APP_MESSAGE_MANAGER_URL
+              value: http://message-manager:8080
+            - name: APP_MESSAGE_WEBSOCKET_URL
+              value: ws://message-manager:8080/chat
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: bff
+spec:
+  selector:
+    app: bff
+  ports:
+    - name: http
+      port: 8080
+      targetPort: 8080

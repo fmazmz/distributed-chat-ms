@@ -22,7 +22,7 @@ spring:
       ddl-auto: update
   kafka:
     bootstrap-servers: localhost:9092
-    topic-name: message-events
+    topic-name: message-published
     consumer:
       group-id: message-manager-group
       auto-offset-reset: earliest

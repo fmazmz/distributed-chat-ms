@@ -9,6 +9,7 @@ import org.springframework.stereotype.Component;
 public class UserMapper {
     public User toEntity(NewUserRequest req) {
         User user = new User();
+        user.setId(req.id());
         user.setUserName(req.userName());
         user.setEmail(req.email());
         return user;

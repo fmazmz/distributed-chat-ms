@@ -1,0 +1,24 @@
+spring:
+  application:
+    name: bff
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          jwk-set-uri: ${APP_JWK_SET_URI:http://localhost:8081/.well-known/jwks.json}
+
+server:
+  port: ${SERVER_PORT:8080}
+
+app:
+  auth-manager-url: ${APP_AUTH_MANAGER_URL:http://localhost:8081}
+  user-manager-url: ${APP_USER_MANAGER_URL:http://localhost:8082}
+  message-manager-url: ${APP_MESSAGE_MANAGER_URL:http://localhost:8083}
+  # Browser-reachable WebSocket (message-manager port when running locally).
+  message-websocket-url: ${APP_MESSAGE_WEBSOCKET_URL:ws://127.0.0.1:8083/chat}
+
+logging:
+  level:
+    org.fmazmz.bff: INFO
+    org.springframework.security: INFO
+    org.springframework.security.web: DEBUG

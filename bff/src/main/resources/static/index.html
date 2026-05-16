@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Distributed Chat</title>
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+  <main class="container">
+    <header>
+      <h1>Distributed Chat</h1>
+      <p class="muted">WebAuthn via BFF · WebSocket chat</p>
+    </header>
+
+    <section id="auth-panel" class="card">
+      <div class="tabs">
+        <button type="button" class="tab active" data-tab="login">Login</button>
+        <button type="button" class="tab" data-tab="register">Register</button>
+      </div>
+      <form id="login-form" class="panel">
+        <label>Username <input name="userName" required minlength="3" autocomplete="username" /></label>
+        <button type="submit">Sign in with passkey</button>
+      </form>
+      <form id="register-form" class="panel hidden">
+        <label>Username <input name="userName" required minlength="3" autocomplete="username" /></label>
+        <label>Email <input name="email" type="email" required autocomplete="email" /></label>
+        <button type="submit">Create passkey</button>
+      </form>
+      <p id="auth-status" class="status" role="status"></p>
+    </section>
+
+    <section id="chat-panel" class="card hidden">
+      <div class="user-bar">
+        <span>Signed in as <strong id="me-name"></strong></span>
+        <span class="muted">ID: <code id="me-id"></code></span>
+        <button type="button" id="logout-btn" class="link">Log out</button>
+      </div>
+      <p class="hint">Share your ID with someone so they can invite you. Both users must be online (WebSocket connected).</p>
+
+      <p id="ws-status" class="status">Connecting…</p>
+
+      <div class="row">
+        <label>Chat with user ID
+          <input id="peer-id" placeholder="UUID of other user" />
+        </label>
+        <button type="button" id="invite-btn">Send invite</button>
+      </div>
+
+      <div id="pending-invites" class="invites"></div>
+
+      <div id="active-chat" class="hidden">
+        <p>Session: <code id="session-id"></code></p>
+        <div id="messages" class="messages"></div>
+        <form id="send-form" class="row">
+          <input id="message-input" placeholder="Type a message…" autocomplete="off" />
+          <button type="submit">Send</button>
+        </form>
+      </div>
+    </section>
+  </main>
+  <script src="/app.js"></script>
+</body>
+</html>

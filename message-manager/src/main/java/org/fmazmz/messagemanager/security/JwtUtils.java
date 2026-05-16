@@ -16,6 +16,10 @@ public class JwtUtils {
         this.jwtDecoder = jwtDecoder;
     }
 
+    public UUID subjectAsUuid(Jwt jwt) {
+        return UUID.fromString(jwt.getSubject());
+    }
+
     public UUID validateTokenAndGetUserId(String authHeader) {
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
             throw new RuntimeException("Missing or invalid Authorization header");

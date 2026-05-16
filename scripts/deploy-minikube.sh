@@ -50,11 +50,11 @@ package_service() {
   )
 }
 
-for svc in user-manager auth-manager message-manager; do
+for svc in user-manager auth-manager message-manager bff; do
   package_service "${svc}"
 done
 
-for svc in user-manager auth-manager message-manager; do
+for svc in user-manager auth-manager message-manager bff; do
   echo ">>> docker build: ${svc}"
   docker build -t "${svc}:local" "${ROOT}/${svc}"
 done
@@ -63,9 +63,9 @@ echo ">>> kubectl apply"
 minikube kubectl -- apply -f "${MANIFEST}"
 
 echo ">>> rollout restart (apps)"
-minikube kubectl -- rollout restart deployment/user-manager deployment/auth-manager deployment/message-manager
+minikube kubectl -- rollout restart deployment/user-manager deployment/auth-manager deployment/message-manager deployment/bff
 
-for d in kafka postgres-user postgres-message postgres-auth user-manager auth-manager message-manager; do
+for d in kafka postgres-user postgres-message postgres-auth user-manager auth-manager message-manager bff; do
   echo ">>> wait: ${d}"
   minikube kubectl -- rollout status "deployment/${d}" --timeout=240s
 done
@@ -74,7 +74,5 @@ echo
 echo "Done. Images are in Minikube Docker; host Docker unchanged until you run:"
 echo "  ./scripts/teardown-minikube.sh"
 echo
-echo "Port-forward examples:"
-echo "  minikube kubectl -- port-forward svc/auth-manager 8080:8080"
-echo "  minikube kubectl -- port-forward svc/user-manager 8080:8080"
-echo "  minikube kubectl -- port-forward svc/message-manager 8080:8080"
+echo "Port-forward BFF (client entrypoint):"
+echo "  minikube kubectl -- port-forward svc/bff 8080:8080"

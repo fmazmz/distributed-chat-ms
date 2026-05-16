@@ -26,6 +26,7 @@ import org.fmazmz.authmanager.api.TokenResponse;
 import org.fmazmz.authmanager.api.WebAuthnLoginStartResponse;
 import org.fmazmz.authmanager.api.WebAuthnRegistrationStartResponse;
 import org.fmazmz.authmanager.config.AuthProperties;
+import org.fmazmz.authmanager.domain.AuthAccount;
 import org.fmazmz.authmanager.domain.WebAuthnCeremony;
 import org.fmazmz.authmanager.domain.WebAuthnCeremony.Kind;
 import org.fmazmz.authmanager.domain.WebAuthnCredential;
@@ -41,16 +42,19 @@ public class WebAuthnCeremonyService {
 
     private final RelyingParty relyingParty;
     private final AuthProperties authProperties;
+    private final AuthAccountService authAccountService;
     private final WebAuthnCeremonyRepository ceremonyRepository;
     private final WebAuthnCredentialRepository credentialRepository;
     private final TokenService tokenService;
 
     @Transactional
-    public WebAuthnRegistrationStartResponse startRegistration(String userId, String displayName)
+    public WebAuthnRegistrationStartResponse startRegistration(String userName, String email)
             throws JsonProcessingException {
+        AuthAccount account = authAccountService.createPending(userName, email);
+        String userId = account.getId().toString();
         var handle = JpaCredentialRepository.userHandleForUserId(userId);
         UserIdentity user =
-                UserIdentity.builder().name(userId).displayName(displayName).id(handle).build();
+                UserIdentity.builder().name(userId).displayName(userName).id(handle).build();
         var authenticatorSelection = AuthenticatorSelectionCriteria.builder()
                 .userVerification(UserVerificationRequirement.PREFERRED)
                 .build();
@@ -95,12 +99,15 @@ public class WebAuthnCeremonyService {
         entity.setSignatureCount(result.getSignatureCount());
         credentialRepository.save(entity);
 
+        authAccountService.activate(UUID.fromString(ceremony.getUserId()));
         ceremonyRepository.delete(ceremony);
         return tokenService.issueForUser(ceremony.getUserId());
     }
 
     @Transactional
-    public WebAuthnLoginStartResponse startLogin(String userId) throws JsonProcessingException {
+    public WebAuthnLoginStartResponse startLogin(String userName) throws JsonProcessingException {
+        AuthAccount account = authAccountService.requireActiveByUserName(userName);
+        String userId = account.getId().toString();
         JpaCredentialRepository.userHandleForUserId(userId);
         var options = StartAssertionOptions.builder()
                 .username(userId)
