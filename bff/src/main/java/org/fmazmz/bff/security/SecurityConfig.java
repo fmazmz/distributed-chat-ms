@@ -30,6 +30,7 @@ public class SecurityConfig {
                         "/api/v1/public/**",
                         "/api/v1/auth/register/**",
                         "/api/v1/auth/login/**",
+                        "/api/v1/auth/logout",
                         "/ws/chat",
                         "/ws/chat/**")
                 .csrf(AbstractHttpConfigurer::disable)

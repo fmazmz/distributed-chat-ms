@@ -2,17 +2,14 @@ package org.fmazmz.bff.websocket;
 
 import java.io.IOException;
 import java.net.URI;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
-import java.util.Base64;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import lombok.extern.slf4j.Slf4j;
 import org.fmazmz.bff.config.BffProperties;
+import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.CloseStatus;
 import org.springframework.web.socket.TextMessage;
@@ -27,10 +24,8 @@ public class MessageManagerWebSocketProxy extends TextWebSocketHandler {
 
     private static final String PEER_KEY = "ws-peer";
     private static final String PENDING_KEY = "ws-pending";
-    private static final String USER_ID_ATTR = "wsUserId";
     private static final String BROWSER_REG_ATTR = "wsBrowserReg";
     private static final Set<String> CLIENT_MESSAGE_TYPES = Set.of("REQUEST_CHAT", "ACCEPT_CHAT", "MESSAGE");
-    private static final Pattern SUB_CLAIM = Pattern.compile("\"sub\"\\s*:\\s*\"([^\"]+)\"");
 
     private final String messageManagerWsBase;
     private final StandardWebSocketClient client = new StandardWebSocketClient();
@@ -45,26 +40,29 @@ public class MessageManagerWebSocketProxy extends TextWebSocketHandler {
 
     @Override
     public void afterConnectionEstablished(WebSocketSession browserSession) {
-        String userId = subFromQuery(browserSession.getUri() != null ? browserSession.getUri().getQuery() : null);
-        String browserReg = UUID.randomUUID().toString();
-        browserSession.getAttributes().put(USER_ID_ATTR, userId);
-        browserSession.getAttributes().put(BROWSER_REG_ATTR, browserReg);
-
-        if (userId != null) {
-            WebSocketSession previous = activeBrowserByUser.get(userId);
-            if (previous != null && previous.isOpen() && !previous.getId().equals(browserSession.getId())) {
-                log.info(
-                        "Closing stale browser WS for userId={} oldSession={} newSession={}",
-                        userId,
-                        previous.getId(),
-                        browserSession.getId());
-                closeQuietly(previous, CloseStatus.GOING_AWAY);
-            }
-            activeBrowserByUser.put(userId, browserSession);
+        String userId = (String) browserSession.getAttributes().get(ChatWebSocketAuthHandshakeInterceptor.USER_ID_ATTR);
+        String bearer = (String) browserSession.getAttributes().get(ChatWebSocketAuthHandshakeInterceptor.BEARER_ATTR);
+        if (userId == null || bearer == null) {
+            log.warn("Browser WS missing auth attributes, closing sessionId={}", browserSession.getId());
+            closeQuietly(browserSession, CloseStatus.NOT_ACCEPTABLE.withReason("Unauthorized"));
+            return;
         }
 
-        String query = browserSession.getUri().getQuery();
-        String target = messageManagerWsBase + (query != null && !query.isBlank() ? "?" + query : "");
+        String browserReg = UUID.randomUUID().toString();
+        browserSession.getAttributes().put(BROWSER_REG_ATTR, browserReg);
+
+        WebSocketSession previous = activeBrowserByUser.get(userId);
+        if (previous != null && previous.isOpen() && !previous.getId().equals(browserSession.getId())) {
+            log.info(
+                    "Closing stale browser WS for userId={} oldSession={} newSession={}",
+                    userId,
+                    previous.getId(),
+                    browserSession.getId());
+            closeQuietly(previous, CloseStatus.GOING_AWAY);
+        }
+        activeBrowserByUser.put(userId, browserSession);
+
+        URI target = URI.create(messageManagerWsBase);
         log.info(
                 "Browser WS connected userId={} sessionId={}, opening backend {}",
                 userId,
@@ -89,14 +87,14 @@ public class MessageManagerWebSocketProxy extends TextWebSocketHandler {
                 if (browser == null || !browser.isOpen()) {
                     log.warn(
                             "No active browser for userId={} backendSession={} frame={}",
-                            backendSession.getAttributes().get(USER_ID_ATTR),
+                            backendSession.getAttributes().get(ChatWebSocketAuthHandshakeInterceptor.USER_ID_ATTR),
                             backendSession.getId(),
                             message.getPayload());
                     return;
                 }
                 log.info(
                         "WS proxy MM -> browser userId={} browserSession={}: {}",
-                        backendSession.getAttributes().get(USER_ID_ATTR),
+                        backendSession.getAttributes().get(ChatWebSocketAuthHandshakeInterceptor.USER_ID_ATTR),
                         browser.getId(),
                         message.getPayload());
                 sendTo(browser, message);
@@ -115,7 +113,10 @@ public class MessageManagerWebSocketProxy extends TextWebSocketHandler {
             }
         };
 
-        client.execute(backendHandler, new WebSocketHttpHeaders(), URI.create(target))
+        WebSocketHttpHeaders backendHeaders = new WebSocketHttpHeaders();
+        backendHeaders.add(HttpHeaders.AUTHORIZATION, bearer);
+
+        client.execute(backendHandler, backendHeaders, target)
                 .whenComplete((ignored, error) -> {
                     if (error != null) {
                         log.error("Failed to connect backend WebSocket at {}", target, error);
@@ -134,7 +135,7 @@ public class MessageManagerWebSocketProxy extends TextWebSocketHandler {
         WebSocketSession backend = peer(browserSession);
         log.info(
                 "WS proxy browser -> message-manager userId={} sessionId={}: {}",
-                browserSession.getAttributes().get(USER_ID_ATTR),
+                browserSession.getAttributes().get(ChatWebSocketAuthHandshakeInterceptor.USER_ID_ATTR),
                 browserSession.getId(),
                 payload);
         if (backend != null && backend.isOpen()) {
@@ -147,7 +148,7 @@ public class MessageManagerWebSocketProxy extends TextWebSocketHandler {
 
     @Override
     public void afterConnectionClosed(WebSocketSession browserSession, CloseStatus status) {
-        String userId = (String) browserSession.getAttributes().get(USER_ID_ATTR);
+        String userId = (String) browserSession.getAttributes().get(ChatWebSocketAuthHandshakeInterceptor.USER_ID_ATTR);
         String browserReg = (String) browserSession.getAttributes().get(BROWSER_REG_ATTR);
         log.info("Browser WS closed userId={} sessionId={}: {}", userId, browserSession.getId(), status);
         if (userId != null && browserReg != null) {
@@ -165,7 +166,7 @@ public class MessageManagerWebSocketProxy extends TextWebSocketHandler {
     }
 
     private WebSocketSession resolveActiveBrowser(WebSocketSession backendSession) {
-        Object userId = backendSession.getAttributes().get(USER_ID_ATTR);
+        Object userId = backendSession.getAttributes().get(ChatWebSocketAuthHandshakeInterceptor.USER_ID_ATTR);
         if (userId instanceof String uid) {
             WebSocketSession latest = activeBrowserByUser.get(uid);
             if (latest != null && latest.isOpen()) {
@@ -173,36 +174,6 @@ public class MessageManagerWebSocketProxy extends TextWebSocketHandler {
             }
         }
         return peer(backendSession);
-    }
-
-    static String subFromQuery(String query) {
-        if (query == null || query.isBlank()) {
-            return null;
-        }
-        String token = null;
-        for (String part : query.split("&")) {
-            if (part.startsWith("token=")) {
-                token = part.substring("token=".length());
-                break;
-            }
-        }
-        if (token == null || token.isBlank()) {
-            return null;
-        }
-        String[] segments = token.split("\\.");
-        if (segments.length < 2) {
-            return null;
-        }
-        try {
-            String payload = new String(Base64.getUrlDecoder().decode(segments[1]), StandardCharsets.UTF_8);
-            Matcher matcher = SUB_CLAIM.matcher(payload);
-            if (matcher.find()) {
-                return matcher.group(1);
-            }
-        } catch (IllegalArgumentException ignored) {
-            return null;
-        }
-        return null;
     }
 
     private void sendTo(WebSocketSession session, TextMessage message) throws IOException {
@@ -247,7 +218,7 @@ public class MessageManagerWebSocketProxy extends TextWebSocketHandler {
         browser.getAttributes().put(PEER_KEY, backend);
         backend.getAttributes().put(PEER_KEY, browser);
         if (userId != null) {
-            backend.getAttributes().put(USER_ID_ATTR, userId);
+            backend.getAttributes().put(ChatWebSocketAuthHandshakeInterceptor.USER_ID_ATTR, userId);
         }
     }
 

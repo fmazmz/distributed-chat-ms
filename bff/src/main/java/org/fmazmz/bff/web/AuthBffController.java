@@ -1,8 +1,11 @@
 package org.fmazmz.bff.web;
 
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
+import org.fmazmz.bff.security.ChatAccessTokenCookie;
 import org.fmazmz.bff.client.AuthManagerClient;
 import org.fmazmz.bff.client.UserManagerClient;
 import org.fmazmz.bff.dto.auth.RegisterFinishBffRequest;
@@ -57,5 +60,11 @@ public class AuthBffController {
     @PostMapping("/login/finish")
     public TokenResponse loginFinish(@Valid @RequestBody WebAuthnFinishRequest body) {
         return authManagerClient.loginFinish(body);
+    }
+
+    @PostMapping("/logout")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void logout(HttpServletRequest request, HttpServletResponse response) {
+        ChatAccessTokenCookie.clear(response, request.isSecure());
     }
 }

@@ -1,5 +1,6 @@
 package org.fmazmz.messagemanager.adapter.web.socket;
 
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.server.ServerHttpRequest;
 import org.springframework.http.server.ServerHttpResponse;
 import org.springframework.stereotype.Component;
@@ -19,16 +20,15 @@ public class ChatJwtHandshakeInterceptor implements HandshakeInterceptor {
             ServerHttpResponse response,
             WebSocketHandler wsHandler,
             Map<String, Object> attributes) {
-        String auth = request.getHeaders().getFirst("Authorization");
+        String auth = request.getHeaders().getFirst(HttpHeaders.AUTHORIZATION);
         if (auth == null || auth.isBlank()) {
-            String token = request.getURI().getQuery();
-            if (token != null && token.startsWith("token=")) {
-                auth = "Bearer " + token.substring("token=".length());
-            }
+            return false;
         }
-        if (auth != null && !auth.isBlank()) {
-            attributes.put(BEARER_ATTRIBUTE, auth);
+        String bearer = auth.trim();
+        if (!bearer.regionMatches(true, 0, "Bearer ", 0, 7)) {
+            bearer = "Bearer " + bearer;
         }
+        attributes.put(BEARER_ATTRIBUTE, bearer);
         return true;
     }
 

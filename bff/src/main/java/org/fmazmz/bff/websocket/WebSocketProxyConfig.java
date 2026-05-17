@@ -12,9 +12,12 @@ import org.springframework.web.socket.config.annotation.WebSocketHandlerRegistry
 public class WebSocketProxyConfig implements WebSocketConfigurer {
 
     private final MessageManagerWebSocketProxy messageManagerWebSocketProxy;
+    private final ChatWebSocketAuthHandshakeInterceptor chatWebSocketAuthHandshakeInterceptor;
 
     @Override
     public void registerWebSocketHandlers(WebSocketHandlerRegistry registry) {
-        registry.addHandler(messageManagerWebSocketProxy, "/ws/chat").setAllowedOriginPatterns("*");
+        registry.addHandler(messageManagerWebSocketProxy, "/ws/chat")
+                .addInterceptors(chatWebSocketAuthHandshakeInterceptor)
+                .setAllowedOriginPatterns("*");
     }
 }

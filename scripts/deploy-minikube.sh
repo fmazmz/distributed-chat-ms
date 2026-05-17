@@ -65,7 +65,7 @@ minikube kubectl -- apply -f "${MANIFEST}"
 echo ">>> rollout restart (apps)"
 minikube kubectl -- rollout restart deployment/user-manager deployment/auth-manager deployment/message-manager deployment/bff
 
-for d in kafka postgres-user postgres-message postgres-auth user-manager auth-manager message-manager bff; do
+for d in kafka kafka-ui postgres-user postgres-message postgres-auth user-manager auth-manager message-manager bff; do
   echo ">>> wait: ${d}"
   minikube kubectl -- rollout status "deployment/${d}" --timeout=240s
 done
@@ -76,3 +76,7 @@ echo "  ./scripts/teardown-minikube.sh"
 echo
 echo "Port-forward BFF (client entrypoint):"
 echo "  minikube kubectl -- port-forward svc/bff 8080:8080"
+echo
+echo "Port-forward Kafka UI (topic browser, e.g. message-published):"
+echo "  minikube kubectl -- port-forward svc/kafka-ui 8089:8080"
+echo "  open http://localhost:8089"

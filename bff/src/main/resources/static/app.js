@@ -217,7 +217,7 @@ function wsUrl() {
   const base = path.startsWith('ws')
     ? path.replace(/\/$/, '')
     : `${proto}//${window.location.host}${path.startsWith('/') ? path : '/' + path}`.replace(/\/$/, '');
-  return `${base}?token=${encodeURIComponent(getToken())}`;
+  return base;
 }
 
 function appendMessage(text, mine) {
@@ -420,8 +420,17 @@ $('register-form').addEventListener('submit', async (e) => {
   }
 });
 
-$('logout-btn').addEventListener('click', () => {
+$('logout-btn').addEventListener('click', async () => {
   setToken(null);
+  if (ws) {
+    try {
+      ws.close(1000);
+    } catch (_) {
+      /* ignore */
+    }
+    ws = null;
+  }
+  await api('/api/v1/auth/logout', { method: 'POST', anonymous: true }).catch(() => {});
   me = null;
   activeSessionId = null;
   showAuth();

@@ -68,7 +68,14 @@ public class ChatHandler extends TextWebSocketHandler {
                 authHeader = bearer;
             }
         }
-        UUID userId = jwtUtils.validateTokenAndGetUserId(authHeader);
+        final UUID userId;
+        try {
+            userId = jwtUtils.validateTokenAndGetUserId(authHeader);
+        } catch (RuntimeException ex) {
+            log.warn("WebSocket auth failed: {}", ex.getMessage());
+            session.close(CloseStatus.NOT_ACCEPTABLE.withReason("Unauthorized"));
+            return;
+        }
         String registrationId = UUID.randomUUID().toString();
         session.getAttributes().put(USER_ID_ATTR, userId);
         session.getAttributes().put(REGISTRATION_ID_ATTR, registrationId);
