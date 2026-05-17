@@ -1,7 +1,6 @@
 package org.fmazmz.messagemanager.service;
 
 import lombok.RequiredArgsConstructor;
-import org.fmazmz.messagemanager.platform.kafka.MessageEventPublisher;
 import org.fmazmz.messagemanager.platform.kafka.event.MessageSentEvent;
 import org.fmazmz.messagemanager.exception.ChatSessionAccessDeniedException;
 import org.fmazmz.messagemanager.exception.ChatSessionNotFoundException;
@@ -11,6 +10,7 @@ import org.fmazmz.messagemanager.model.ChatStatus;
 import org.fmazmz.messagemanager.model.Message;
 import org.fmazmz.messagemanager.repository.ChatSessionRepository;
 import org.fmazmz.messagemanager.repository.MessageRepository;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -24,7 +24,7 @@ public class MessageApplicationService {
 
     private final MessageRepository messageRepository;
     private final ChatSessionRepository chatSessionRepository;
-    private final MessageEventPublisher messageEventPublisher;
+    private final ApplicationEventPublisher applicationEventPublisher;
     private final UserProfilePort userProfilePort;
 
     @Transactional
@@ -51,9 +51,8 @@ public class MessageApplicationService {
         Message saved = messageRepository.save(message);
         Instant createdAt = saved.getCreatedAt() != null ? saved.getCreatedAt() : beforeSave;
 
-        messageEventPublisher.publishMessageSent(
-                new MessageSentEvent(saved.getId(), sessionId, senderId, createdAt, content.length())
-        );
+        applicationEventPublisher.publishEvent(
+                new MessageSentEvent(saved.getId(), sessionId, senderId, createdAt, content.length()));
 
         return saved;
     }

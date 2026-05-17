@@ -12,6 +12,6 @@ public class MessageEventPublisher extends KafkaService {
     }
 
     public void publishMessageSent(MessageSentEvent event) {
-        publish(Topics.MESSAGE_PUBLISHED_TOPIC, event.chatSessionId().toString(), event);
+        publishAsync(Topics.MESSAGE_PUBLISHED_TOPIC, event.chatSessionId().toString(), event);
     }
 }
