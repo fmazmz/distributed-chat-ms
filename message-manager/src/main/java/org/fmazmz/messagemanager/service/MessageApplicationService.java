@@ -52,7 +52,7 @@ public class MessageApplicationService {
         Instant createdAt = saved.getCreatedAt() != null ? saved.getCreatedAt() : beforeSave;
 
         applicationEventPublisher.publishEvent(
-                new MessageSentEvent(saved.getId(), sessionId, senderId, createdAt, content.length()));
+                new MessageSentEvent(UUID.randomUUID(), saved.getId(), sessionId, senderId, createdAt, content.length()));
 
         return saved;
     }

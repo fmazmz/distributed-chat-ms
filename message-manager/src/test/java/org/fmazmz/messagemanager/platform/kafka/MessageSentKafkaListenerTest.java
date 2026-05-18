@@ -23,7 +23,7 @@ class MessageSentKafkaListenerTest {
     @Test
     void publishesToKafkaWhenEventReceived() {
         MessageSentEvent event = new MessageSentEvent(
-                UUID.randomUUID(), UUID.randomUUID(), UUID.randomUUID(), Instant.now(), 12);
+                UUID.randomUUID(), UUID.randomUUID(), UUID.randomUUID(), UUID.randomUUID(), Instant.now(), 12);
 
         listener.onMessageSent(event);
 
