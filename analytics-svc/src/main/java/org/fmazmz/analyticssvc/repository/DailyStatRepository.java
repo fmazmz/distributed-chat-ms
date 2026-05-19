@@ -5,10 +5,10 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDate;
+import java.util.Optional;
 import java.util.UUID;
 
 @Repository
 public interface DailyStatRepository extends JpaRepository<DailyStat, UUID> {
     boolean existsByDate(LocalDate date);
-    DailyStat findByDate(LocalDate date);
-}
+    Optional<DailyStat> findByDate(LocalDate date);}

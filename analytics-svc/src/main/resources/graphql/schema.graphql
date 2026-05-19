@@ -2,10 +2,10 @@ scalar Date
 
 type DailyStat @key(fields: "date") {
     date: Date!
-    messageCount: Int
+    messageCount: Int!
 }
 
 type Query {
-    DailyStat: [DailyStat]
+    dailyStats: [DailyStat!]!
     dailyStat(date: Date!): DailyStat
 }
