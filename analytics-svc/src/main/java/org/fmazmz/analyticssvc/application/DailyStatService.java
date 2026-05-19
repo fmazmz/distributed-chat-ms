@@ -20,8 +20,10 @@ public class DailyStatService {
         return repository.findAll();
     }
 
-    public Optional<DailyStat> findByDate(LocalDate date) {
-        return repository.findByDate(date);
+    public DailyStat findByDate(LocalDate date) {
+        return repository.findByDate(date).orElseThrow(() ->
+                new IllegalArgumentException("No records found for this date")
+        );
     }
 
     public DailyStat incrementToday() {
@@ -39,5 +41,12 @@ public class DailyStatService {
     public void create() {
         DailyStat stat = new DailyStat(LocalDate.now(ZoneOffset.UTC), 1);
         repository.saveAndFlush(stat);
+    }
+
+    public void handleNew() {
+        if (!repository.existsByDate(LocalDate.now(ZoneOffset.UTC))) {
+            create();
+        }
+        incrementToday();
     }
 }

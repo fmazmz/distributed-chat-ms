@@ -33,8 +33,7 @@ public class MessageEventService {
 
         LocalDate today = LocalDate.now(ZoneOffset.UTC);
 
-        if (dailyStatService.findByDate(today).isEmpty()) dailyStatService.create();
-        else dailyStatService.incrementToday();
+        dailyStatService.handleNew();
 
         eventRepository.saveAndFlush(event);
     }
