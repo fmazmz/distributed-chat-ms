@@ -1,6 +1,7 @@
 package org.fmazmz.analyticssvc.application;
 
 import lombok.extern.slf4j.Slf4j;
+import org.fmazmz.analyticssvc.exception.DuplicateEventException;
 import org.fmazmz.analyticssvc.model.MessageSentEvent;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Component;
@@ -23,9 +24,21 @@ public class EventHandler {
 
         try {
             messageEventService.process(event);
-        } catch (Exception e) {
-            log.error("Failed processing eventId={}" ,event.getEventId(), e);
 
+        } catch (DuplicateEventException e) {
+            log.info(
+                    "Duplicate event ignored: eventId={}",
+                    event.getEventId()
+            );
+
+        } catch (Exception e) {
+            log.error(
+                    "Failed processing eventId={}",
+                    event.getEventId(),
+                    e
+            );
+
+            // rethrow so Kafka retries
             throw e;
         }
     }

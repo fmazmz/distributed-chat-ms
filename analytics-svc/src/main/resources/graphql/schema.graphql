@@ -1,0 +1,11 @@
+scalar Date
+
+type DailyStat @key(fields: "date") {
+    date: Date!
+    messageCount: Int
+}
+
+type Query {
+    DailyStat: [DailyStat]
+    dailyStat(date: Date!): DailyStat
+}
