@@ -27,7 +27,7 @@ public class DailyStatDataFetcher {
     public DailyStat dailyStat(@InputArgument LocalDate date) {
         var e = service.findByDate(date);
         if (e == null) return null;
-        return new DailyStat(e.get().getDate(), e.get().getMessageCount());
+        return new DailyStat(e.getDate(), e.getMessageCount());
     }
 
     @DgsEntityFetcher(name = "DailyStat")
@@ -40,6 +40,6 @@ public class DailyStatDataFetcher {
 
         if (entity == null) return null;
 
-        return new DailyStat(entity.get().getDate(), entity.get().getMessageCount());
+        return new DailyStat(entity.getDate(), entity.getMessageCount());
     }
 }

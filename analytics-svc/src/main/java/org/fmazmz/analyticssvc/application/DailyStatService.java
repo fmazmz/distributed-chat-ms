@@ -21,9 +21,7 @@ public class DailyStatService {
     }
 
     public DailyStat findByDate(LocalDate date) {
-        return repository.findByDate(date).orElseThrow(() ->
-                new IllegalArgumentException("No records found for this date")
-        );
+        return repository.findByDate(date).orElse(null);
     }
 
     public DailyStat incrementToday() {
