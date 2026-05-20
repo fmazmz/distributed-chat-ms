@@ -1,15 +1,19 @@
 extend schema
-@link(url: "https://specs.apollo.dev/federation/v2.6",
-    import: ["@key", "@external", "@extends"])
+  @link(url: "https://specs.apollo.dev/federation/v2.6",
+        import: ["@key"])
 
 type User @key(fields: "id", resolvable: false) {
-    id: ID!
+  id: ID!
 }
 
 type Message {
-    id: ID!
-    chatSessionId: ID!
-    sender: User!
-    content: String!
-    createdAt: String!
+  id: ID!
+  chatSessionId: ID!
+  sender: User!
+  content: String!
+  createdAt: String!
+}
+
+type Query {
+  sessionMessages(sessionId: ID!): [Message!]!
 }

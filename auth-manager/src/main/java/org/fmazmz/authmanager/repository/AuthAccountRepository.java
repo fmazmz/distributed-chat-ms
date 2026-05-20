@@ -2,8 +2,8 @@ package org.fmazmz.authmanager.repository;
 
 import java.util.Optional;
 import java.util.UUID;
-import org.fmazmz.authmanager.domain.AuthAccount;
-import org.fmazmz.authmanager.domain.AuthAccount.Status;
+import org.fmazmz.authmanager.model.AuthAccount;
+import org.fmazmz.authmanager.model.AuthAccount.Status;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface AuthAccountRepository extends JpaRepository<AuthAccount, UUID> {

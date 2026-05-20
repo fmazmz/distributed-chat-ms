@@ -2,7 +2,7 @@ package org.fmazmz.authmanager.service;
 
 import java.time.Instant;
 import lombok.RequiredArgsConstructor;
-import org.fmazmz.authmanager.api.TokenResponse;
+import org.fmazmz.authmanager.adapter.api.TokenResponse;
 import org.fmazmz.authmanager.config.AuthProperties;
 import org.springframework.security.oauth2.jwt.JwtClaimsSet;
 import org.springframework.security.oauth2.jwt.JwtEncoder;

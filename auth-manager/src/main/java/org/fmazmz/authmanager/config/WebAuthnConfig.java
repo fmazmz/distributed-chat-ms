@@ -4,7 +4,7 @@ import com.yubico.webauthn.RelyingParty;
 import com.yubico.webauthn.data.RelyingPartyIdentity;
 import java.util.HashSet;
 import lombok.RequiredArgsConstructor;
-import org.fmazmz.authmanager.webauthn.JpaCredentialRepository;
+import org.fmazmz.authmanager.service.JpaCredentialRepository;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
