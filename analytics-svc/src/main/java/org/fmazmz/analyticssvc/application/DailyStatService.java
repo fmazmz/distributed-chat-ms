@@ -8,7 +8,7 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDate;
 import java.time.ZoneOffset;
 import java.util.List;
-import java.util.Optional;
+
 
 @Service
 @RequiredArgsConstructor
@@ -24,16 +24,14 @@ public class DailyStatService {
         return repository.findByDate(date).orElse(null);
     }
 
-    public DailyStat incrementToday() {
-
+    public void incrementToday() {
         LocalDate today = LocalDate.now(ZoneOffset.UTC);
 
         DailyStat stat = repository.findByDate(today)
                 .orElse(new DailyStat(today, 0));
 
         stat.setMessageCount(stat.getMessageCount() + 1);
-
-        return repository.save(stat);
+        repository.saveAndFlush(stat);
     }
 
     public void create() {

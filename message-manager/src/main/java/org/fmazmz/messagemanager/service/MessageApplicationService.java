@@ -48,11 +48,12 @@ public class MessageApplicationService {
         message.setContent(content);
 
         Instant beforeSave = Instant.now();
-        Message saved = messageRepository.save(message);
+        Message saved = messageRepository.saveAndFlush(message);
         Instant createdAt = saved.getCreatedAt() != null ? saved.getCreatedAt() : beforeSave;
 
         applicationEventPublisher.publishEvent(
-                new MessageSentEvent(UUID.randomUUID(), saved.getId(), sessionId, senderId, createdAt, content.length()));
+                new MessageSentEvent(UUID.randomUUID(), saved.getId(), sessionId, senderId, createdAt, content.length())
+        );
 
         return saved;
     }
