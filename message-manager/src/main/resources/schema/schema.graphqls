@@ -1,0 +1,15 @@
+extend schema
+@link(url: "https://specs.apollo.dev/federation/v2.6",
+    import: ["@key", "@external", "@extends"])
+
+type User @key(fields: "id", resolvable: false) {
+    id: ID!
+}
+
+type Message {
+    id: ID!
+    chatSessionId: ID!
+    sender: User!
+    content: String!
+    createdAt: String!
+}

@@ -31,6 +31,7 @@
         <grpc.version>1.77.1</grpc.version>
         <protobuf-java.version>4.33.4</protobuf-java.version>
         <spring-grpc.version>1.0.3</spring-grpc.version>
+        <netflix-dgs.version>11.1.0</netflix-dgs.version>
     </properties>
     <dependencies>
         <dependency>
@@ -87,9 +88,29 @@
             <artifactId>spring-grpc-test</artifactId>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>com.netflix.graphql.dgs</groupId>
+            <artifactId>graphql-dgs-spring-graphql-starter</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.netflix.graphql.dgs</groupId>
+            <artifactId>graphql-dgs-spring-graphql-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.netflix.graphql.dgs</groupId>
+            <artifactId>graphql-dgs-extended-scalars</artifactId>
+        </dependency>
     </dependencies>
     <dependencyManagement>
         <dependencies>
+            <dependency>
+                <groupId>com.netflix.graphql.dgs</groupId>
+                <artifactId>graphql-dgs-platform-dependencies</artifactId>
+                <version>${netflix-dgs.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
             <dependency>
                 <groupId>org.springframework.grpc</groupId>
                 <artifactId>spring-grpc-dependencies</artifactId>
