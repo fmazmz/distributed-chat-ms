@@ -1,9 +1,9 @@
-package org.fmazmz.analyticssvc.fetcher;
+package org.fmazmz.analyticssvc.application.graphql;
 
 import com.netflix.graphql.dgs.*;
 import lombok.RequiredArgsConstructor;
-import org.fmazmz.analyticssvc.model.DailyStat;
 import org.fmazmz.analyticssvc.application.DailyStatService;
+import org.fmazmz.analyticssvc.model.DailyStat;
 
 import java.time.LocalDate;
 import java.util.List;
