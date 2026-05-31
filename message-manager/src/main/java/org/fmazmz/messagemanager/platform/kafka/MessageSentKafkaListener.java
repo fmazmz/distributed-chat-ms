@@ -6,9 +6,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
 
-/**
- * Publishes to Kafka only after the message row is committed, so consumers never see events for rolled-back writes.
- */
 @Component
 @RequiredArgsConstructor
 public class MessageSentKafkaListener {

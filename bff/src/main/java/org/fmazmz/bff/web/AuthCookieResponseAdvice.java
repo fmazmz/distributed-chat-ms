@@ -14,10 +14,6 @@ import org.springframework.http.server.ServletServerHttpResponse;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseBodyAdvice;
 
-/**
- * Sets HttpOnly access-token cookie on login/register so the browser can authenticate WebSocket upgrades
- * without putting the JWT in the URL.
- */
 @ControllerAdvice(assignableTypes = AuthBffController.class)
 public class AuthCookieResponseAdvice implements ResponseBodyAdvice<TokenResponse> {
 

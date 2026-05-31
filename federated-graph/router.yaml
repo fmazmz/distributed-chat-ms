@@ -3,7 +3,6 @@ supergraph:
   path: /graphql
   introspection: true
 
-# Apollo Sandbox IDE for the composed federated graph (local dev only).
 sandbox:
   enabled: true
 

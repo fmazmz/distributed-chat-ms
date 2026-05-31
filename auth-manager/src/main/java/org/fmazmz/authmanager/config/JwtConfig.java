@@ -63,7 +63,6 @@ public class JwtConfig {
         return "";
     }
 
-    /** Dotenv often stores PEM as one line with literal {@code \n} sequences. */
     static String normalizePem(String pem) {
         return pem.trim().replace("\\n", "\n");
     }
@@ -87,10 +86,6 @@ public class JwtConfig {
                 .build();
     }
 
-    /**
-     * PKCS#8 PEM only. For PKCS#1 ({@code BEGIN RSA PRIVATE KEY}), convert with:
-     * {@code openssl pkcs8 -top8 -nocrypt -inform PEM -in rsa-legacy.pem -out private.pem}
-     */
     public static KeyPair loadPkcs8RsaFromPem(String pem)
             throws NoSuchAlgorithmException, InvalidKeySpecException {
         String normalized =

@@ -19,9 +19,7 @@ public class AuthManagerClient {
     private final RestClient restClient;
 
     public AuthManagerClient(BffProperties properties) {
-        String baseUrl = properties.getAuthManagerUrl();
-        this.restClient = RestClient.builder().baseUrl(baseUrl).build();
-        log.info("AuthManagerClient -> {}", baseUrl);
+        this.restClient = RestClient.builder().baseUrl(properties.getAuthManagerUrl()).build();
     }
 
     public WebAuthnRegistrationStartResponse registerStart(WebAuthnRegistrationStartRequest body) {

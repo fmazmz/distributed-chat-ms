@@ -13,10 +13,6 @@ import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-/**
- * Standard JWKS URL for resource servers: {@code spring.security.oauth2.resourceserver.jwt.jwk-set-uri}
- * pointing at {@code /.well-known/jwks.json}.
- */
 @RestController
 @RequiredArgsConstructor
 public class JwksController {

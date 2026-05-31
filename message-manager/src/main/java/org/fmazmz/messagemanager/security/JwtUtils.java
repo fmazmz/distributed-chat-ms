@@ -42,7 +42,7 @@ public class JwtUtils {
             throw new RuntimeException("Missing or invalid Authorization header");
         }
 
-        String token = authHeader.substring(7); // remove "Bearer "
+        String token = authHeader.substring(7);
         try {
             Jwt jwt = jwtDecoder.decode(token);
             return UUID.fromString(jwt.getSubject());

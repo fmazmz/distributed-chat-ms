@@ -20,25 +20,11 @@ public class EventHandler {
     @Transactional
     @KafkaListener(topics = "message-published")
     public void onEventReceived(MessageSentEvent event) {
-        log.info("Received kafka event: eventId={}", event.getEventId());
-
         try {
             messageEventService.process(event);
-
-        } catch (DuplicateEventException e) {
-            log.info(
-                    "Duplicate event ignored: eventId={}",
-                    event.getEventId()
-            );
-
+        } catch (DuplicateEventException ignored) {
         } catch (Exception e) {
-            log.error(
-                    "Failed processing eventId={}",
-                    event.getEventId(),
-                    e
-            );
-
-            // rethrow so Kafka retries
+            log.error("Failed processing eventId={}", event.getEventId(), e);
             throw e;
         }
     }

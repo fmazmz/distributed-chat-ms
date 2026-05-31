@@ -33,8 +33,7 @@ spring:
       value-deserializer: org.springframework.kafka.support.serializer.JacksonJsonDeserializer
       properties:
         spring.json.trusted.packages: org.fmazmz.messagemanager
-        # No type headers from producer; fix target type when you add @KafkaListener consumers.
-        spring.json.value.default.type: org.fmazmz.messagemanager.event.MessageSentEvent
+        spring.json.value.default.type: org.fmazmz.messagemanager.platform.kafka.event.MessageSentEvent
         spring.json.use.type.headers: false
     producer:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
@@ -46,5 +45,4 @@ server:
 
 messagemanager:
   user-grpc:
-    # When true, POST /messages checks User Service via gRPC before persisting.
     validate-sender: ${MESSAGEMANAGER_USER_GRPC_VALIDATE_SENDER:true}

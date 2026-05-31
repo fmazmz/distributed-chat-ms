@@ -25,11 +25,9 @@ public class WebAuthnCredential {
     @Column(name = "user_id", nullable = false, length = 128)
     private String userId;
 
-    /** Raw credential ID bytes from the authenticator. */
     @Column(name = "credential_id", nullable = false, columnDefinition = "bytea")
     private byte[] credentialId;
 
-    /** WebAuthn user handle (stable byte sequence); we derive from {@code userId} UTF-8. */
     @Column(name = "user_handle", nullable = false, columnDefinition = "bytea")
     private byte[] userHandle;
 

@@ -1,6 +1,4 @@
 services:
-  # Requires access to ghcr.io/apollographql/router. If pull fails, use:
-  #   ./scripts/run-router.sh
   router:
     image: ghcr.io/apollographql/router:v1.58.1
     ports:

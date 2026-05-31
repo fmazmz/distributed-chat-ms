@@ -1,7 +1,4 @@
 #!/usr/bin/env bash
-# Forward Minikube subgraph services to the local ports expected by graph-layer/supergraph.yaml.
-# Run from repo root in a dedicated terminal (keeps running until Ctrl+C):
-#   ./graph-layer/scripts/port-forward-subgraphs.sh
 set -euo pipefail
 
 need() { command -v "$1" >/dev/null 2>&1 || { echo "missing: $1" >&2; exit 1; }; }
@@ -13,7 +10,6 @@ if ! minikube status >/dev/null 2>&1; then
   exit 1
 fi
 
-# Use kubectl directly to avoid repeated "minikube downloading dependencies" noise.
 KUBECTL=(kubectl --context=minikube)
 
 pids=()
@@ -54,7 +50,7 @@ fi
 
 echo
 echo "Port-forwards active. In another terminal:"
-echo "  cd graph-layer && ./scripts/run-router.sh"
+echo "  cd federated-graph && ./scripts/run-router.sh"
 echo "  open http://localhost:4000/"
 echo
 echo "In Sandbox, set connection headers:"

@@ -9,7 +9,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDate;
 import java.time.ZoneOffset;
 
-
 @Service
 public class MessageEventService {
     private final EventRepository eventRepository;

@@ -9,7 +9,6 @@ import java.time.LocalDate;
 import java.time.ZoneOffset;
 import java.util.List;
 
-
 @Service
 @RequiredArgsConstructor
 public class DailyStatService {

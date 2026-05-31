@@ -68,9 +68,6 @@ public class MessageApplicationService {
         return messageRepository.findByChatSessionIdOrderByCreatedAtAsc(chatSessionId);
     }
 
-    /**
-     * Erases persisted messages + session metadata for GDPR-style cleanup (invoked after user confirms in UI).
-     */
     @Transactional
     public void purgeSessionForUser(UUID sessionId, UUID userId) {
         ChatSessionEntity session = chatSessionRepository.findById(sessionId)

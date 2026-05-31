@@ -15,10 +15,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.socket.WebSocketHandler;
 import org.springframework.web.socket.server.HandshakeInterceptor;
 
-/**
- * Validates JWT on WebSocket upgrade via {@code Authorization} header and/or HttpOnly cookie.
- * Rejects the handshake when credentials are missing or invalid.
- */
 @Slf4j
 @Component
 @RequiredArgsConstructor

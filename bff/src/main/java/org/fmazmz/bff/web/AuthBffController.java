@@ -21,10 +21,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.RestController;
 
-@Slf4j
 @RestController
 @RequestMapping("/api/v1/auth")
 @RequiredArgsConstructor
@@ -35,20 +33,17 @@ public class AuthBffController {
 
     @PostMapping("/register/start")
     public WebAuthnRegistrationStartResponse registerStart(@Valid @RequestBody WebAuthnRegistrationStartRequest body) {
-        log.info("register/start: userName={}", body.userName());
         return authManagerClient.registerStart(body);
     }
 
     @PostMapping("/register/finish")
     @ResponseStatus(HttpStatus.CREATED)
     public TokenResponse registerFinish(@Valid @RequestBody RegisterFinishBffRequest body) {
-        log.info("register/finish: userName={}, ceremonyId={}", body.userName(), body.ceremonyId());
         TokenResponse tokens = authManagerClient.registerFinish(
                 new WebAuthnFinishRequest(body.ceremonyId(), body.credentialJson()));
         userManagerClient.createUser(
                 new NewUserRequest(UUID.fromString(tokens.userId()), body.userName(), body.email()),
                 tokens.accessToken());
-        log.info("register/finish complete: userId={}", tokens.userId());
         return tokens;
     }
 

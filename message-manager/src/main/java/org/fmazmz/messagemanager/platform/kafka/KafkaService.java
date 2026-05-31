@@ -16,9 +16,6 @@ public abstract class KafkaService {
         this.kafkaTemplate = kafkaTemplate;
     }
 
-    /**
-     * Enqueues the record without blocking for broker ACK; logs success or failure on the send callback.
-     */
     protected void publishAsync(String topic, String key, Object event) {
         CompletableFuture<SendResult<String, Object>> future = kafkaTemplate.send(topic, key, event);
         future.whenComplete((result, ex) -> {

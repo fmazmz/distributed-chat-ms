@@ -30,12 +30,11 @@ public class MessageManagerWebSocketProxy extends TextWebSocketHandler {
     private final String messageManagerWsBase;
     private final StandardWebSocketClient client = new StandardWebSocketClient();
     private final ConcurrentHashMap<String, Object> sendLocks = new ConcurrentHashMap<>();
-    /** Latest open browser tab per JWT sub — avoids forwarding to stale peer links. */
+
     private final ConcurrentHashMap<String, WebSocketSession> activeBrowserByUser = new ConcurrentHashMap<>();
 
     public MessageManagerWebSocketProxy(BffProperties properties) {
         this.messageManagerWsBase = properties.getMessageManagerWebSocketUrl().replaceAll("/$", "");
-        log.info("WebSocket proxy /ws/chat -> {}", messageManagerWsBase);
     }
 
     @Override
@@ -53,32 +52,17 @@ public class MessageManagerWebSocketProxy extends TextWebSocketHandler {
 
         WebSocketSession previous = activeBrowserByUser.get(userId);
         if (previous != null && previous.isOpen() && !previous.getId().equals(browserSession.getId())) {
-            log.info(
-                    "Closing stale browser WS for userId={} oldSession={} newSession={}",
-                    userId,
-                    previous.getId(),
-                    browserSession.getId());
             closeQuietly(previous, CloseStatus.GOING_AWAY);
         }
         activeBrowserByUser.put(userId, browserSession);
 
         URI target = URI.create(messageManagerWsBase);
-        log.info(
-                "Browser WS connected userId={} sessionId={}, opening backend {}",
-                userId,
-                browserSession.getId(),
-                target);
 
         TextWebSocketHandler backendHandler = new TextWebSocketHandler() {
             @Override
             public void afterConnectionEstablished(WebSocketSession backendSession) throws IOException {
                 link(browserSession, backendSession, userId);
                 flushPending(browserSession, backendSession);
-                log.info(
-                        "Backend WS connected for userId={} browserSession={} backendSession={}",
-                        userId,
-                        browserSession.getId(),
-                        backendSession.getId());
             }
 
             @Override
@@ -92,11 +76,6 @@ public class MessageManagerWebSocketProxy extends TextWebSocketHandler {
                             message.getPayload());
                     return;
                 }
-                log.info(
-                        "WS proxy MM -> browser userId={} browserSession={}: {}",
-                        backendSession.getAttributes().get(ChatWebSocketAuthHandshakeInterceptor.USER_ID_ATTR),
-                        browser.getId(),
-                        message.getPayload());
                 sendTo(browser, message);
             }
 
@@ -133,11 +112,6 @@ public class MessageManagerWebSocketProxy extends TextWebSocketHandler {
             return;
         }
         WebSocketSession backend = peer(browserSession);
-        log.info(
-                "WS proxy browser -> message-manager userId={} sessionId={}: {}",
-                browserSession.getAttributes().get(ChatWebSocketAuthHandshakeInterceptor.USER_ID_ATTR),
-                browserSession.getId(),
-                payload);
         if (backend != null && backend.isOpen()) {
             sendTo(backend, message);
             return;
@@ -150,7 +124,6 @@ public class MessageManagerWebSocketProxy extends TextWebSocketHandler {
     public void afterConnectionClosed(WebSocketSession browserSession, CloseStatus status) {
         String userId = (String) browserSession.getAttributes().get(ChatWebSocketAuthHandshakeInterceptor.USER_ID_ATTR);
         String browserReg = (String) browserSession.getAttributes().get(BROWSER_REG_ATTR);
-        log.info("Browser WS closed userId={} sessionId={}: {}", userId, browserSession.getId(), status);
         if (userId != null && browserReg != null) {
             activeBrowserByUser.computeIfPresent(userId, (id, open) ->
                     browserReg.equals(open.getAttributes().get(BROWSER_REG_ATTR)) ? null : open);
@@ -227,7 +200,6 @@ public class MessageManagerWebSocketProxy extends TextWebSocketHandler {
         return peer instanceof WebSocketSession webSocketSession ? webSocketSession : null;
     }
 
-    /** Close only the backend peer; do not close the user's current browser tab in {@link #activeBrowserByUser}. */
     private void closeBackendPeer(WebSocketSession session, CloseStatus status) {
         WebSocketSession backendOrBrowser = peer(session);
         session.getAttributes().remove(PEER_KEY);
@@ -244,7 +216,7 @@ public class MessageManagerWebSocketProxy extends TextWebSocketHandler {
             try {
                 session.close(status);
             } catch (IOException ignored) {
-                // best effort
+
             }
         }
     }

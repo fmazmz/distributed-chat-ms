@@ -14,11 +14,8 @@ app:
   auth-manager-url: ${APP_AUTH_MANAGER_URL:http://localhost:8081}
   user-manager-url: ${APP_USER_MANAGER_URL:http://localhost:8082}
   message-manager-url: ${APP_MESSAGE_MANAGER_URL:http://localhost:8083}
-  # BFF -> message-manager (in-cluster DNS or localhost port-forward target).
   message-manager-web-socket-url: ${APP_MESSAGE_MANAGER_WEBSOCKET_URL:ws://127.0.0.1:8083/chat}
 
 logging:
   level:
     org.fmazmz.bff: INFO
-    org.springframework.security: INFO
-    org.springframework.security.web: DEBUG

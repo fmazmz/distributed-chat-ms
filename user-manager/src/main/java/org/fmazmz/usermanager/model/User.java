@@ -15,7 +15,7 @@ import java.util.UUID;
 @Setter
 @NoArgsConstructor
 public class User {
-    /** Same UUID as auth-manager account; assigned on create, not generated here. */
+
     @Id
     private UUID id;
 

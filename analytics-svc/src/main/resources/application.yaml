@@ -17,7 +17,7 @@ spring:
       value-deserializer: org.springframework.kafka.support.serializer.JacksonJsonDeserializer
       properties:
         spring.json.trusted.packages: org.fmazmz.analyticssvc
-        spring.json.value.default.type: org.fmazmz.analyticssvc.MessageSentEvent
+        spring.json.value.default.type: org.fmazmz.analyticssvc.model.MessageSentEvent
         spring.json.use.type.headers: false
       group-id: analytics-svc-group
   datasource:

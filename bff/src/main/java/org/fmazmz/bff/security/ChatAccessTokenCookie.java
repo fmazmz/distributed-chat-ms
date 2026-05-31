@@ -7,10 +7,6 @@ import java.time.Duration;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
 
-/**
- * HttpOnly cookie used for browser WebSocket handshakes (browsers cannot set {@code Authorization} on WS).
- * REST continues to use {@code Authorization: Bearer} from the SPA; both are set on login/register.
- */
 public final class ChatAccessTokenCookie {
 
     public static final String NAME = "chat_access_token";

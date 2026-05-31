@@ -12,9 +12,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.UUID;
 
-/**
- * Privacy: user-confirmed wipe of all persisted data for a chat session they belong to.
- */
 @RestController
 @RequestMapping("/api/chat-sessions")
 @RequiredArgsConstructor

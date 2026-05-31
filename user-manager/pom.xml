@@ -6,26 +6,13 @@
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
         <version>4.0.6</version>
-        <relativePath/> <!-- lookup parent from repository -->
+        <relativePath/>
     </parent>
     <groupId>org.fmazmz</groupId>
     <artifactId>user-manager</artifactId>
     <version>0.0.1-SNAPSHOT</version>
     <name>user-manager</name>
     <description>user-manager</description>
-    <url/>
-    <licenses>
-        <license/>
-    </licenses>
-    <developers>
-        <developer/>
-    </developers>
-    <scm>
-        <connection/>
-        <developerConnection/>
-        <tag/>
-        <url/>
-    </scm>
     <properties>
         <java.version>25</java.version>
         <grpc.version>1.77.1</grpc.version>
@@ -97,10 +84,6 @@
             <artifactId>graphql-dgs-spring-graphql-starter-test</artifactId>
             <scope>test</scope>
         </dependency>
-        <dependency>
-            <groupId>com.netflix.graphql.dgs</groupId>
-            <artifactId>graphql-dgs-extended-scalars</artifactId>
-        </dependency>
     </dependencies>
     <dependencyManagement>
         <dependencies>
@@ -147,7 +130,6 @@
                     </execution>
                 </executions>
             </plugin>
-            <!-- Register generated protobuf/gRPC sources so IDEs and javac resolve org.fmazmz.usermanager.grpc.v1.* -->
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>build-helper-maven-plugin</artifactId>

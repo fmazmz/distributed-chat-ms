@@ -82,7 +82,6 @@ public class ChatHandler extends TextWebSocketHandler {
 
         WebSocketSession previous = activeConnections.get(userId);
         if (previous != null && previous.isOpen()) {
-            log.info("Closing previous WebSocket for userId={} (new tab/login)", userId);
             previous.close(CloseStatus.GOING_AWAY);
         }
 
@@ -93,11 +92,6 @@ public class ChatHandler extends TextWebSocketHandler {
         activeConnections.put(userId, outbound);
 
         String userName = resolveUserName(userId);
-        log.info(
-                "WebSocket connected: userId={} userName={} onlineUsers={}",
-                userId,
-                userName,
-                activeConnections.size());
     }
 
     @Override
@@ -139,7 +133,6 @@ public class ChatHandler extends TextWebSocketHandler {
                 }
                 return open;
             });
-            log.info("WebSocket closed: userId={} onlineUsers={}", userId, activeConnections.size());
         } else {
             sendLocks.remove(ws.getId());
         }
@@ -171,12 +164,6 @@ public class ChatHandler extends TextWebSocketHandler {
                     "type", "CHAT_REQUEST",
                     "sessionId", sessionId.toString(),
                     "fromUserId", requesterId.toString()));
-            log.info(
-                    "Chat invite delivered: sessionId={} from={} to={} recipientWsId={}",
-                    sessionId,
-                    requesterId,
-                    recipientId,
-                    recipientWs.getId());
         } else {
             log.warn("Chat invite not delivered — recipient {} is not online (online: {})", recipientId, activeConnections.keySet());
             sendJson(sender, Map.of(

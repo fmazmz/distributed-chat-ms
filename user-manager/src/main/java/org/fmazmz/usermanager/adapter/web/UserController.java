@@ -2,7 +2,6 @@ package org.fmazmz.usermanager.adapter.web;
 
 import jakarta.validation.Valid;
 import java.util.UUID;
-import lombok.extern.slf4j.Slf4j;
 import org.fmazmz.usermanager.application.UserDetailService;
 import org.fmazmz.usermanager.adapter.web.dto.NewUserRequest;
 import org.fmazmz.usermanager.adapter.web.dto.NewUserResponse;
@@ -21,7 +20,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
-@Slf4j
 @RestController
 @RequestMapping(path = "api/v1/users", produces = MediaType.APPLICATION_JSON_VALUE)
 public class UserController {
@@ -36,7 +34,6 @@ public class UserController {
     public ResponseEntity<ApiResponse<NewUserResponse>> newUser(
             @AuthenticationPrincipal Jwt jwt, @RequestBody @Valid NewUserRequest request) {
         assertTokenMatchesProfile(jwt, request.id());
-        log.info("Creating profile id={} userName={}", request.id(), request.userName());
         NewUserResponse response = service.createUser(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(response));
     }

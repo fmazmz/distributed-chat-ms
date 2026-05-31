@@ -22,11 +22,9 @@ public class UserManagerClient {
     public UserManagerClient(BffProperties properties) {
         this.baseUrl = properties.getUserManagerUrl();
         this.restClient = RestClient.builder().baseUrl(baseUrl).build();
-        log.info("UserManagerClient -> {}", baseUrl);
     }
 
     public NewUserResponse createUser(NewUserRequest request, String accessToken) {
-        log.info("user-manager POST /api/v1/users id={} at {}", request.id(), baseUrl);
         try {
             ApiResponse<NewUserResponse> wrapped = restClient
                     .post()

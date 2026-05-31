@@ -19,7 +19,7 @@ check_port() {
   local name="$2"
   if ! (echo >/dev/tcp/127.0.0.1/"$port") 2>/dev/null; then
     echo "WARNING: nothing listening on 127.0.0.1:${port} (${name})"
-    echo "  Minikube: run ./graph-layer/scripts/port-forward-subgraphs.sh in another terminal"
+    echo "  Minikube: run ./federated-graph/scripts/port-forward-subgraphs.sh in another terminal"
     echo "  Local dev: start ${name} with SERVER_PORT=${port}"
     missing_ports=1
   fi

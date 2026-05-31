@@ -5,9 +5,6 @@ import com.netflix.graphql.dgs.federation.DefaultDgsFederationResolver;
 import java.util.Map;
 import org.fmazmz.usermanager.adapter.graphql.dto.UserView;
 
-/**
- * Maps Java DTO class names to GraphQL federation type names so {@code _entities} can resolve {@code User}.
- */
 @DgsComponent
 public class UserFederationResolver extends DefaultDgsFederationResolver {
 
