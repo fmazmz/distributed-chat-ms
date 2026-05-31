@@ -42,4 +42,4 @@ build/
 *.pem
 
 # Apollo Router binary (installed locally via graph-layer/scripts/run-router.sh)
-graph-layer/router
+federated-graph/router
