@@ -1,0 +1,83 @@
+schema
+  @link(url: "https://specs.apollo.dev/link/v1.0")
+  @link(url: "https://specs.apollo.dev/join/v0.3", for: EXECUTION)
+{
+  query: Query
+}
+
+directive @join__enumValue(graph: join__Graph!) repeatable on ENUM_VALUE
+
+directive @join__field(graph: join__Graph, requires: join__FieldSet, provides: join__FieldSet, type: String, external: Boolean, override: String, usedOverridden: Boolean) repeatable on FIELD_DEFINITION | INPUT_FIELD_DEFINITION
+
+directive @join__graph(name: String!, url: String!) on ENUM_VALUE
+
+directive @join__implements(graph: join__Graph!, interface: String!) repeatable on OBJECT | INTERFACE
+
+directive @join__type(graph: join__Graph!, key: join__FieldSet, extension: Boolean! = false, resolvable: Boolean! = true, isInterfaceObject: Boolean! = false) repeatable on OBJECT | INTERFACE | UNION | ENUM | INPUT_OBJECT | SCALAR
+
+directive @join__unionMember(graph: join__Graph!, member: String!) repeatable on UNION
+
+directive @link(url: String, as: String, for: link__Purpose, import: [link__Import]) repeatable on SCHEMA
+
+type DailyStat
+  @join__type(graph: ANALYTICS, key: "date")
+{
+  date: Date!
+  messageCount: Int!
+}
+
+scalar Date
+  @join__type(graph: ANALYTICS)
+
+scalar join__FieldSet
+
+enum join__Graph {
+  ANALYTICS @join__graph(name: "analytics", url: "http://127.0.0.1:8084/graphql")
+  MESSAGES @join__graph(name: "messages", url: "http://127.0.0.1:8083/graphql")
+  USERS @join__graph(name: "users", url: "http://127.0.0.1:8082/graphql")
+}
+
+scalar link__Import
+
+enum link__Purpose {
+  """
+  `SECURITY` features provide metadata necessary to securely resolve fields.
+  """
+  SECURITY
+
+  """
+  `EXECUTION` features provide metadata necessary for operation execution.
+  """
+  EXECUTION
+}
+
+type Message
+  @join__type(graph: MESSAGES)
+{
+  id: ID!
+  chatSessionId: ID!
+  sender: User!
+  content: String!
+  createdAt: String!
+}
+
+type Query
+  @join__type(graph: ANALYTICS)
+  @join__type(graph: MESSAGES)
+  @join__type(graph: USERS)
+{
+  dailyStats: [DailyStat!]! @join__field(graph: ANALYTICS)
+  dailyStat(date: Date!): DailyStat @join__field(graph: ANALYTICS)
+  sessionMessages(sessionId: ID!): [Message!]! @join__field(graph: MESSAGES)
+  me: User @join__field(graph: USERS)
+  user(id: ID!): User @join__field(graph: USERS)
+}
+
+type User
+  @join__type(graph: MESSAGES, key: "id", resolvable: false)
+  @join__type(graph: USERS, key: "id")
+{
+  id: ID!
+  userName: String! @join__field(graph: USERS)
+  email: String! @join__field(graph: USERS)
+}

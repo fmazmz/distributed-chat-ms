@@ -27,6 +27,7 @@ public class SecurityConfig {
                         "/app.js",
                         "/styles.css",
                         "/favicon.ico",
+                        "/error",
                         "/api/v1/public/**",
                         "/api/v1/auth/register/**",
                         "/api/v1/auth/login/**",

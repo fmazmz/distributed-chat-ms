@@ -1,0 +1,18 @@
+services:
+  # Requires access to ghcr.io/apollographql/router. If pull fails, use:
+  #   ./scripts/run-router.sh
+  router:
+    image: ghcr.io/apollographql/router:v1.58.1
+    ports:
+      - "4000:4000"
+      - "8088:8088"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - ./supergraph.graphql:/dist/schema/supergraph.graphql:ro
+      - ./router.yaml:/dist/config/router.yaml:ro
+    command:
+      - --config
+      - /dist/config/router.yaml
+      - --supergraph
+      - /dist/schema/supergraph.graphql

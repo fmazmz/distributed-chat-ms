@@ -40,3 +40,6 @@ build/
 .env
 
 *.pem
+
+# Apollo Router binary (installed locally via graph-layer/scripts/run-router.sh)
+graph-layer/router

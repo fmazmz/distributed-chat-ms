@@ -77,6 +77,10 @@ echo
 echo "Port-forward BFF (client entrypoint):"
 echo "  minikube kubectl -- port-forward svc/bff 8080:8080"
 echo
+echo "Port-forward subgraphs for local Apollo Router (Sandbox at http://localhost:4000/):"
+echo "  ./graph-layer/scripts/port-forward-subgraphs.sh"
+echo "  cd graph-layer && ./scripts/run-router.sh"
+echo
 echo "Port-forward Kafka UI (topic browser, e.g. message-published):"
 echo "  minikube kubectl -- port-forward svc/kafka-ui 8089:8080"
 echo "  open http://localhost:8089"

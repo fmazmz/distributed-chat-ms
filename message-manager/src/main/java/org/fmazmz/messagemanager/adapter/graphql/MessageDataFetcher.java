@@ -15,8 +15,6 @@ import org.fmazmz.messagemanager.adapter.graphql.dto.MessageView;
 import org.fmazmz.messagemanager.adapter.graphql.dto.UserRef;
 import org.fmazmz.messagemanager.security.JwtUtils;
 import org.fmazmz.messagemanager.service.MessageApplicationService;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.oauth2.jwt.Jwt;
 
 @DgsComponent
 @RequiredArgsConstructor
@@ -28,9 +26,8 @@ public class MessageDataFetcher {
     private final JwtUtils jwtUtils;
 
     @DgsQuery
-    public List<MessageView> sessionMessages(
-            @InputArgument UUID sessionId, @AuthenticationPrincipal Jwt jwt) {
-        UUID userId = jwtUtils.subjectAsUuid(jwt);
+    public List<MessageView> sessionMessages(@InputArgument UUID sessionId) {
+        UUID userId = jwtUtils.currentUserId();
         return messageApplicationService.listMessagesForParticipant(sessionId, userId).stream()
                 .map(this::toView)
                 .toList();

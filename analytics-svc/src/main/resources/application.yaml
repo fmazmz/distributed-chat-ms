@@ -2,6 +2,11 @@ spring:
   graphql:
     graphiql:
       enabled: true
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          jwk-set-uri: http://auth-manager:8080/.well-known/jwks.json
   application:
     name: analytics-svc
   kafka:
@@ -20,3 +25,5 @@ spring:
       jdbc-url: jdbc:h2:mem:testdb
     driver-class-name: org.h2.Driver
     username: test
+server:
+  port: ${SERVER_PORT:8084}
